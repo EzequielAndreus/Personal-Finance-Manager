@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Deudas{% endblock %}
+{% block content %}
+<h3 class="mb-3">Deudas registradas</h3>
+<p><strong>Total de deudas:</strong> ${{ "%.2f"|format(total_debts) }}<br>
+<strong>Vencidas:</strong> {{ overdue_count }} (Total: ${{ "%.2f"|format(total_overdue) }})</p>
+
+<table class="table table-bordered table-hover">
+    <thead>
+        <tr><th>Nombre</th><th>Monto</th><th>Vencimiento</th><th>Días restantes</th></tr>
+    </thead>
+    <tbody>
+        {% for d in debts %}
+        <tr class="{% if d.is_overdue %}table-danger{% endif %}">
+            <td>{{ d.name }}</td>
+            <td>${{ "%.2f"|format(d.amount) }}</td>
+            <td>{{ d.due_date.strftime('%Y-%m-%d') }}</td>
+            <td>{{ d.days_until_due }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" class="text-center">No tienes deudas</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
