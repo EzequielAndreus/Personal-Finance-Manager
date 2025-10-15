@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Resumen{% endblock %}
+{% block content %}
+<h3 class="mb-4">Resumen general</h3>
+
+<div class="row text-center mb-4">
+    <div class="col-md-4"><div class="card p-3 shadow-sm"><h6>Total Pagado</h6><h3 class="text-success">${{ "%.2f"|format(total_paid) }}</h3></div></div>
+    <div class="col-md-4"><div class="card p-3 shadow-sm"><h6>Total Deudas</h6><h3 class="text-danger">${{ "%.2f"|format(total_debts) }}</h3></div></div>
+    <div class="col-md-4"><div class="card p-3 shadow-sm"><h6>Total General</h6><h3>${{ "%.2f"|format(grand_total) }}</h3></div></div>
+</div>
+
+<h5>Categorías</h5>
+<table class="table table-striped">
+    <thead><tr><th>Categoría</th><th>Cantidad</th><th>Total</th></tr></thead>
+    <tbody>
+        {% for c in categories %}
+        <tr><td>{{ c.category }}</td><td>{{ c.count }}</td><td>${{ "%.2f"|format(c.total) }}</td></tr>
+        {% else %}
+        <tr><td colspan="3" class="text-center">No hay datos</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h5>Gastos por mes</h5>
+<table class="table table-bordered">
+    <thead><tr><th>Mes</th><th>Total</th></tr></thead>
+    <tbody>
+        {% for m in monthly_data %}
+        <tr><td>{{ m.month }}</td><td>${{ "%.2f"|format(m.total) }}</td></tr>
+        {% else %}
+        <tr><td colspan="2" class="text-center">No hay registros</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
