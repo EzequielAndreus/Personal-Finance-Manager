@@ -1,6 +1,6 @@
 ## 📝 Description
 
-Please include a summary of the changes and the related issue.  
+Please include a summary of the changes and the related issue.
 Explain the motivation and context, and list any dependencies required for this change.
 
 Fixes # (issue)
