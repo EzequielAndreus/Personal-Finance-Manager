@@ -10,39 +10,41 @@ import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
-from app import app, init_db
+from app import create_app
+from utils.db_init import init_db
 from models import db, User, Expense
 
 
 @pytest.fixture(scope="session")
 def app_config():
     """Configuration for testing"""
+    test_db_url = os.getenv(
+        "TEST_DATABASE_URL", 
+        "postgresql+psycopg2://postgres:password@localhost/test_milestone_1"
+    )
     return {
         "TESTING": True,
-        "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
+        "SQLALCHEMY_DATABASE_URI": test_db_url,
         "SQLALCHEMY_TRACK_MODIFICATIONS": False,
         "SECRET_KEY": "test-secret-key",
         "WTF_CSRF_ENABLED": False,
+        "SQLALCHEMY_ENGINE_OPTIONS": {"pool_pre_ping": True},
     }
 
 
 @pytest.fixture(scope="function")
 def test_app(app_config):
     """Create a test Flask application"""
-    # Create a temporary database file
-    db_fd, db_path = tempfile.mkstemp()
-    
+    app = create_app()
     app.config.update(app_config)
-    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
     
     with app.app_context():
+        # Drop all tables and recreate them for clean state
+        db.drop_all()
         db.create_all()
         yield app
         db.session.remove()
         db.drop_all()
-    
-    os.close(db_fd)
-    os.unlink(db_path)
 
 
 @pytest.fixture(scope="function")
