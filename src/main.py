@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
@@ -5,8 +6,9 @@ from datetime import datetime
 app = Flask(__name__)
 
 # Database configuration
-app.config["SQLALCHEMY_DATABASE_URI"] = (
-    "postgresql://postgres:password@localhost/postgres"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
+    "DATABASE_URL",
+    "postgresql+psycopg2://postgres:password@localhost/postgres",
 )
 # Example: username=postgres, password=password, host=localhost, dbname=postgres
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_pre_ping": True}
