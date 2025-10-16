@@ -33,7 +33,7 @@ class TestAuthentication:
         })
         
         assert response.status_code == 200
-        assert b"incorrectos" in response.data or b"incorrect" in response.data
+        assert b"Invalid username or password" in response.data or b"incorrect" in response.data
 
     @pytest.mark.integration
     def test_login_already_authenticated(self, authenticated_client):
