@@ -14,7 +14,7 @@ class User(db.Model):
     is_admin = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # Relación con expenses
+    # Relationship with expenses
     expenses = db.relationship(
         "Expense",
         backref="user",
@@ -23,11 +23,11 @@ class User(db.Model):
     )
 
     def set_password(self, password):
-        """Establece el hash de la contraseña"""
+        """Sets the hashed password."""
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
-        """Verifica si la contraseña es correcta"""
+        """Verifies whether the given password matches the stored hash."""
         return check_password_hash(self.password_hash, password)
 
     def __repr__(self):
@@ -42,7 +42,7 @@ class Expense(db.Model):
     amount = db.Column(db.Float, nullable=False)
     category = db.Column(db.String(50), nullable=False)
     date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
-    due_date = db.Column(db.Date, nullable=True)  # null = no es deuda
+    due_date = db.Column(db.Date, nullable=True)  # Null → not a debt
     element = db.Column(db.String(100), nullable=True)
     comment = db.Column(db.Text, nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
@@ -50,19 +50,19 @@ class Expense(db.Model):
 
     @property
     def is_debt(self):
-        """Retorna True si el expense es una deuda (tiene due_date)"""
+        """Returns True if this expense is a debt (has a due date)."""
         return self.due_date is not None
 
     @property
     def is_overdue(self):
-        """Retorna True si la deuda está vencida"""
+        """Returns True if the debt is overdue."""
         if not self.is_debt:
             return False
         return self.due_date < datetime.utcnow().date()
 
     @property
     def days_until_due(self):
-        """Retorna días restantes hasta vencimiento (negativo si está vencido)"""
+        """Returns the number of days remaining until the due date (negative if overdue)."""
         if not self.is_debt:
             return None
         delta = self.due_date - datetime.utcnow().date()
