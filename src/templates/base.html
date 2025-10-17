@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}Expenses App{% endblock %}</title>
@@ -11,20 +11,19 @@
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('index') }}">💰 Expenses</a>
+            <a class="navbar-brand" href="{{ url_for('dashboard.index') }}">💰 Expenses</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             {% if session.get('user_id') %}
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('new_expense') }}">Nuevo</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('expenses_list') }}">Gastos</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('debts_list') }}">Deudas</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('summary') }}">Resumen</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('expenses.new_expense') }}">New</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('expenses.expenses_list') }}">Expenses</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('expenses.debts_list') }}">Debts</a></li>
                 </ul>
                 <span class="navbar-text me-3">👤 {{ session['username'] }}</span>
-                <a href="{{ url_for('logout') }}" class="btn btn-outline-light btn-sm">Cerrar sesión</a>
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-light btn-sm">Log out</a>
             </div>
             {% endif %}
         </div>

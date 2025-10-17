@@ -1,40 +1,40 @@
 {% extends "base.html" %}
-{% block title %}Nuevo gasto{% endblock %}
+{% block title %}New Expense{% endblock %}
 {% block content %}
-<h3 class="mb-4">Registrar nuevo gasto</h3>
+<h3 class="mb-4">Register New Expense</h3>
 <form method="POST" class="card p-4 shadow-sm">
     <div class="row mb-3">
         <div class="col-md-6">
-            <label class="form-label">Nombre</label>
+            <label class="form-label">Name</label>
             <input type="text" name="name" class="form-control" required>
         </div>
         <div class="col-md-3">
-            <label class="form-label">Monto</label>
+            <label class="form-label">Amount</label>
             <input type="number" name="amount" step="0.01" class="form-control" required>
         </div>
         <div class="col-md-3">
-            <label class="form-label">Categoría</label>
+            <label class="form-label">Category</label>
             <input type="text" name="category" class="form-control" required>
         </div>
     </div>
     <div class="row mb-3">
         <div class="col-md-4">
-            <label class="form-label">Fecha</label>
+            <label class="form-label">Date</label>
             <input type="date" name="date" class="form-control" value="{{ today }}" required>
         </div>
         <div class="col-md-4">
-            <label class="form-label">Fecha de vencimiento (opcional)</label>
+            <label class="form-label">Due Date (optional)</label>
             <input type="date" name="due_date" class="form-control">
         </div>
         <div class="col-md-4">
-            <label class="form-label">Elemento</label>
+            <label class="form-label">Item</label>
             <input type="text" name="element" class="form-control">
         </div>
     </div>
     <div class="mb-3">
-        <label class="form-label">Comentario</label>
+        <label class="form-label">Comment</label>
         <textarea name="comment" class="form-control" rows="2"></textarea>
     </div>
-    <button class="btn btn-dark w-100">Guardar gasto</button>
+    <button class="btn btn-dark w-100">Save Expense</button>
 </form>
 {% endblock %}
