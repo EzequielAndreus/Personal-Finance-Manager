@@ -26,7 +26,7 @@ def index():
 
     expenses_count = Expense.query.filter_by(user_id=user_id).count()
     debts_count = Expense.query.filter(
-        Expense.user_id == user_id, Expense.due_date.isnot(None)
+        Expense.user_id == user_id, Expense.due_date.isnot(None), Expense.due_date >= datetime.utcnow().date(),
     ).count()
 
     recent_expenses = (

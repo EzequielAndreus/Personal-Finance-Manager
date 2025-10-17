@@ -178,8 +178,8 @@ def summary():
 
     monthly_data = (
         db.session.query(
-            func.strftime("%Y-%m", Expense.date).label("month"),
-            func.sum(Expense.amount).label("total"),
+            func.to_char(func.date_trunc('month', Expense.date), 'YYYY-MM').label('month'),
+            func.sum(Expense.amount).label('total'),
         )
         .filter_by(user_id=user_id)
         .group_by("month")
