@@ -12,6 +12,9 @@ RUN apt-get update && \
 # Establecer directorio de trabajo
 WORKDIR /app
 
+# Set Python path to include src directory
+ENV PYTHONPATH=/app/src
+
 # Copiar los archivos del proyecto al contenedor
 COPY . /app
 
