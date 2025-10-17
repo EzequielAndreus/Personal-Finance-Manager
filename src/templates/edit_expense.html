@@ -1,0 +1,52 @@
++{% extends "base.html" %}
+{% block title %}Editar gasto{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h3 class="mb-4">Editar gasto</h3>
+
+    <form method="POST">
+        <div class="mb-3">
+            <label for="name" class="form-label">Nombre del gasto *</label>
+            <input type="text" id="name" name="name" class="form-control" value="{{ expense.name }}" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="amount" class="form-label">Monto *</label>
+            <input type="number" id="amount" name="amount" class="form-control" step="0.01" value="{{ expense.amount }}" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="category" class="form-label">Categoría *</label>
+            <input type="text" id="category" name="category" class="form-control" value="{{ expense.category }}" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="date" class="form-label">Fecha *</label>
+            <input type="date" id="date" name="date" class="form-control"
+                   value="{{ expense.date.strftime('%Y-%m-%d') }}" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="due_date" class="form-label">Fecha de vencimiento (opcional)</label>
+            <input type="date" id="due_date" name="due_date" class="form-control"
+                   value="{% if expense.due_date %}{{ expense.due_date.strftime('%Y-%m-%d') }}{% endif %}">
+        </div>
+
+        <div class="mb-3">
+            <label for="element" class="form-label">Elemento (opcional)</label>
+            <input type="text" id="element" name="element" class="form-control" value="{{ expense.element or '' }}">
+        </div>
+
+        <div class="mb-3">
+            <label for="comment" class="form-label">Comentario (opcional)</label>
+            <textarea id="comment" name="comment" class="form-control" rows="3">{{ expense.comment or '' }}</textarea>
+        </div>
+
+        <div class="d-flex justify-content-between">
+            <a href="{{ url_for('expenses_list') }}" class="btn btn-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-primary">Guardar cambios</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
