@@ -128,7 +128,7 @@ class TestExpense:
             date=date.today(),
             user_id=sample_user.id
         )
-        assert expense.is_overdue is False
+        assert expense.is_overdue is None
 
         # Future debt
         future_debt = Expense(
