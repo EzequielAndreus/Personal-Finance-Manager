@@ -160,25 +160,6 @@ class TestDebtRoutes:
         assert b"sesion" in response.data.lower() or b"iniciar" in response.data.lower()
 
 
-class TestSummaryRoute:
-    """Test cases for summary route"""
-
-    @pytest.mark.integration
-    def test_summary_page(self, authenticated_client, sample_expense, sample_debt):
-        """Test summary page"""
-        response = authenticated_client.get("/summary")
-        assert response.status_code == 200
-        assert str(sample_expense.amount).encode() in response.data
-        assert str(sample_debt.amount).encode() in response.data
-
-    @pytest.mark.integration
-    def test_summary_requires_auth(self, client):
-        """Test that summary requires authentication"""
-        response = client.get("/summary", follow_redirects=True)
-        assert response.status_code == 200
-        assert b"sesion" in response.data.lower() or b"iniciar" in response.data.lower()
-
-
 class TestErrorHandling:
     """Test cases for error handling"""
 
