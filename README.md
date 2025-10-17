@@ -5,6 +5,7 @@ A Flask-based web application for managing personal expenses and debts with user
 ## 🚀 Overview
 
 This application provides a comprehensive solution for tracking personal finances, including:
+
 - **User Authentication**: Secure login system with password hashing
 - **Expense Management**: Create, edit, and track personal expenses
 - **Debt Tracking**: Monitor debts with due dates and overdue notifications
@@ -23,42 +24,48 @@ This application provides a comprehensive solution for tracking personal finance
 ## 📋 Main Dependencies
 
 ### Core Dependencies
+
 - **Flask 3.1.2** - Web framework
 - **Flask-SQLAlchemy 3.1.1** - Database ORM
 - **psycopg2-binary 2.9.11** - PostgreSQL adapter
 - **Werkzeug 3.1.3** - WSGI utilities and password hashing
 
 ### Development Dependencies
+
 - **pytest 8.4.2** - Testing framework
 - **Docker & Docker Compose** - Containerization
 
 ## 🛠️ Installation & Setup
 
 ### Prerequisites
+
 - Docker and Docker Compose
 - Python 3.11+ (for local development)
 
 ### Quick Start with Docker (Recommended)
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd Milestone-1
    ```
 
 2. **Build and start the application**
+
    ```bash
    make build
    make up
    ```
 
 3. **Initialize the database**
+
    ```bash
    make migrate
    ```
 
 4. **Access the application**
-   - Web app: http://localhost:5001
+   - Web app: <http://localhost:5001>
    - Database: localhost:5432
 
 ## 📖 Makefile Commands
@@ -66,6 +73,7 @@ This application provides a comprehensive solution for tracking personal finance
 The project includes a comprehensive Makefile for easy development and deployment:
 
 ### Development Commands
+
 ```bash
 make help          # Show all available commands
 make build         # Build Docker images
@@ -77,23 +85,27 @@ make restart-web   # Restart only the web service
 ```
 
 ### Database Commands
+
 ```bash
 make migrate       # Run database migrations and create tables
 make db-shell      # Access PostgreSQL shell
 ```
 
 ### Testing Commands
+
 ```bash
 make test          # Run tests in Docker container
 ```
 
 ### Production Commands
+
 ```bash
 make prod-up       # Start production environment
 make prod-down     # Stop production environment
 ```
 
 ### Maintenance Commands
+
 ```bash
 make clean         # Clean up containers and volumes
 make clean-all     # Clean up containers, volumes, and images
@@ -101,6 +113,7 @@ make status        # Show container status
 ```
 
 ### Development Helpers
+
 ```bash
 make shell         # Access Flask container shell for debugging
 ```
@@ -108,6 +121,7 @@ make shell         # Access Flask container shell for debugging
 ## 🗄️ Database Schema
 
 ### Users Table
+
 - `id` - Primary key
 - `username` - Unique username
 - `password_hash` - Hashed password
@@ -115,6 +129,7 @@ make shell         # Access Flask container shell for debugging
 - `created_at` - Account creation timestamp
 
 ### Expenses Table
+
 - `id` - Primary key
 - `name` - Expense description
 - `amount` - Expense amount
@@ -129,6 +144,7 @@ make shell         # Access Flask container shell for debugging
 ## 🔧 Configuration
 
 ### Environment Variables
+
 - `DATABASE_URL` - PostgreSQL connection string
 - `SECRET_KEY` - Flask secret key for sessions
 - `PORT` - Application port (default: 5001)
@@ -137,6 +153,7 @@ make shell         # Access Flask container shell for debugging
 - `FLASK_DEBUG` - Enable/disable debug mode
 
 ### Database Configuration
+
 - **Host**: localhost (development) / db (Docker)
 - **Port**: 5432
 - **Database**: postgres
@@ -146,11 +163,13 @@ make shell         # Access Flask container shell for debugging
 ## 🧪 Testing
 
 Run the test suite using:
+
 ```bash
 make test
 ```
 
 The project includes comprehensive tests for:
+
 - Authentication routes
 - Expense management
 - Database models
@@ -159,16 +178,19 @@ The project includes comprehensive tests for:
 ## 🚀 Deployment
 
 ### Development Deployment
+
 ```bash
 make up
 ```
 
 ### Production Deployment
+
 ```bash
 make prod-up
 ```
 
 ### Environment Setup
+
 1. Set environment variables in `.env` file
 2. Update `SECRET_KEY` for production
 3. Configure proper database credentials
@@ -223,6 +245,7 @@ This project is part of a milestone assignment. Please refer to your course guid
 ### Common Issues
 
 **Database connection errors:**
+
 ```bash
 make down
 make up
@@ -230,9 +253,11 @@ make migrate
 ```
 
 **Port conflicts:**
+
 - Change the port in `docker-compose.yml` if 5001 is occupied
 
 **Permission issues:**
+
 ```bash
 sudo make clean
 make build
@@ -240,11 +265,13 @@ make up
 ```
 
 **View logs for debugging:**
+
 ```bash
 make logs
 ```
 
 For more help, check the container status:
+
 ```bash
 make status
 ```
