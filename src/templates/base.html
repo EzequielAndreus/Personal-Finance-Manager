@@ -22,6 +22,9 @@
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('expenses.expenses_list') }}">Gastos</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('expenses.debts_list') }}">Deudas</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('expenses.summary') }}">Resumen</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('new_expense') }}">Nuevo</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('expenses_list') }}">Gastos</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('debts_list') }}">Deudas</a></li>
                 </ul>
                 <span class="navbar-text me-3">👤 {{ session['username'] }}</span>
                 <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-light btn-sm">Cerrar sesión</a>
