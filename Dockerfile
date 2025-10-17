@@ -1,25 +1,28 @@
-# Imagen base: Ubuntu con Python
+# Base image: Ubuntu with Python
 FROM python:3.13-slim
 
-# Evitar interacciones durante la instalación
+# Avoid interactive prompts during installation
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Actualizar e instalar dependencias del sistema
+# Update and install system dependencies
 RUN apt-get update && \
     apt-get install -y python3 python3-pip curl && \
     apt-get clean
 
-# Establecer directorio de trabajo
+# Set working directory
 WORKDIR /app
 
-# Copiar los archivos del proyecto al contenedor
+# Set Python path to include src directory
+ENV PYTHONPATH=/app/src
+
+# Copy project files into the container
 COPY . /app
 
-# Instalar las dependencias
+# Install dependencies
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-# Exponer el puerto de Flask
+# Expose Flask port
 EXPOSE 5001
 
-# Comando para ejecutar la aplicación
+# Command to run the application
 CMD ["python3", "src/app.py"]

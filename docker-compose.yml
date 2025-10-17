@@ -29,7 +29,7 @@ services:
       - DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-postgres}
       - SECRET_KEY=${SECRET_KEY:-dev_secret_key_change_in_production}
       - PORT=5000
-      - SEED_PREDEFINED=${SEED_PREDEFINED:-0}
+      - SEED_PREDEFINED=${SEED_PREDEFINED:-1}
       - FLASK_ENV=development
       - FLASK_DEBUG=1
     depends_on:
