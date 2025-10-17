@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% block title %}Dashboard{% endblock %}
 {% block content %}
-<h2 class="mb-4">Resumen general</h2>
+<h2 class="mb-4">General Summary</h2>
 
 <div class="row text-center">
     <div class="col-md-3 mb-3">
         <div class="card border-success shadow-sm">
             <div class="card-body">
-                <h5>Total Gastos</h5>
+                <h5>Total Expenses</h5>
                 <h3 class="text-success">${{ "%.2f"|format(total_expenses) }}</h3>
             </div>
         </div>
@@ -15,7 +15,7 @@
     <div class="col-md-3 mb-3">
         <div class="card border-danger shadow-sm">
             <div class="card-body">
-                <h5>Total Deudas</h5>
+                <h5>Total Debts</h5>
                 <h3 class="text-danger">${{ "%.2f"|format(total_debts) }}</h3>
             </div>
         </div>
@@ -23,7 +23,7 @@
     <div class="col-md-3 mb-3">
         <div class="card border-primary shadow-sm">
             <div class="card-body">
-                <h5>Gastos registrados</h5>
+                <h5>Registered Expenses</h5>
                 <h3>{{ expenses_count }}</h3>
             </div>
         </div>
@@ -31,16 +31,23 @@
     <div class="col-md-3 mb-3">
         <div class="card border-warning shadow-sm">
             <div class="card-body">
-                <h5>Deudas activas</h5>
+                <h5>Active Debts</h5>
                 <h3>{{ debts_count }}</h3>
             </div>
         </div>
     </div>
 </div>
 
-<h4 class="mt-5">Últimos gastos</h4>
+<h4 class="mt-5">Latest Expenses</h4>
 <table class="table table-striped">
-    <thead><tr><th>Nombre</th><th>Monto</th><th>Categoría</th><th>Fecha</th></tr></thead>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Amount</th>
+            <th>Category</th>
+            <th>Date</th>
+        </tr>
+    </thead>
     <tbody>
         {% for e in recent_expenses %}
         <tr>
@@ -50,23 +57,29 @@
             <td>{{ e.date.strftime('%Y-%m-%d') }}</td>
         </tr>
         {% else %}
-        <tr><td colspan="4" class="text-center">Sin gastos recientes</td></tr>
+        <tr><td colspan="4" class="text-center">No recent expenses</td></tr>
         {% endfor %}
     </tbody>
 </table>
 
-<h4 class="mt-4">Próximas deudas</h4>
+<h4 class="mt-4">Upcoming Debts</h4>
 <table class="table table-hover">
-    <thead><tr><th>Nombre</th><th>Monto</th><th>Vence en</th></tr></thead>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Amount</th>
+            <th>Due In</th>
+        </tr>
+    </thead>
     <tbody>
         {% for d in upcoming_debts %}
         <tr>
             <td>{{ d.name }}</td>
             <td>${{ "%.2f"|format(d.amount) }}</td>
-            <td>{{ d.due_date.strftime('%Y-%m-%d') }} ({{ d.days_until_due }} días)</td>
+            <td>{{ d.due_date.strftime('%Y-%m-%d') }} ({{ d.days_until_due }} days)</td>
         </tr>
         {% else %}
-        <tr><td colspan="3" class="text-center">No hay deudas próximas</td></tr>
+        <tr><td colspan="3" class="text-center">No upcoming debts</td></tr>
         {% endfor %}
     </tbody>
 </table>
