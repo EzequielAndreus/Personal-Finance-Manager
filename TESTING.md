@@ -1,6 +1,6 @@
-# Testing Guide for Milestone-1
+# Testing Guide for Personal Finance Tracker
 
-This document explains how to run and understand the tests for the Milestone-1 expense tracking application.
+This document explains how to run and understand the tests for the expense tracking application.
 
 ## Test Structure
 
@@ -40,23 +40,22 @@ uv add pytest
 
 1. **Run all tests:**
    ```bash
-   pytest tests/ -v
+   make test-docker
    ```
 
 2. **Run only unit tests:**
    ```bash
-   pytest tests/ -m unit -v
+   make test-docker-unit
    ```
 
 3. **Run only integration tests:**
    ```bash
-   pytest tests/ -m integration -v
+   make test-docker-integration
    ```
 
 4. **Run with coverage (requires pytest-cov):**
    ```bash
-   uv add pytest-cov
-   pytest tests/ --cov=src --cov=models --cov-report=term-missing
+   make test-docker-cov
    ```
 
 5. **Run specific test file:**
@@ -68,19 +67,6 @@ uv add pytest
    ```bash
    pytest tests/test_models.py::TestUser::test_user_creation -v
    ```
-
-### Using the Test Runner Script
-
-A convenient test runner script is provided:
-
-```bash
-python run_tests.py
-```
-
-This script will:
-- Check prerequisites
-- Run all test suites
-- Provide a summary of results
 
 ## Test Fixtures
 
