@@ -40,22 +40,22 @@ uv add pytest
 
 1. **Run all tests:**
    ```bash
-   make test-docker
+   make test
    ```
 
 2. **Run only unit tests:**
    ```bash
-   make test-docker-unit
+   make test-unit
    ```
 
 3. **Run only integration tests:**
    ```bash
-   make test-docker-integration
+   make test-integration
    ```
 
 4. **Run with coverage (requires pytest-cov):**
    ```bash
-   make test-docker-cov
+   make test-cov
    ```
 
 5. **Run specific test file:**
