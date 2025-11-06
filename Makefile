@@ -36,9 +36,18 @@ shell:
 db-shell:
 	docker-compose exec db psql -U postgres -d postgres
 
-# Testing
+# Testing (inside docker)
 test:
-	docker-compose exec web python -m pytest tests/
+	docker-compose exec web python -m pytest
+
+test-unit:
+	docker-compose exec web python -m pytest -m unit
+
+test-integration:
+	docker-compose exec web python -m pytest -m integration
+
+test-cov:
+	docker-compose exec web python -m pytest --cov=src --cov=models --cov-report=term-missing
 
 # Production environment
 prod-up:

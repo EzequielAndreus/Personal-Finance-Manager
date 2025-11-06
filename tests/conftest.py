@@ -10,7 +10,7 @@ import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
-from app import create_app
+from src.app import create_app
 from utils.db_init import init_db
 from models import db, User, Expense
 
