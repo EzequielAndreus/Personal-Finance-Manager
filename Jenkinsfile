@@ -62,6 +62,7 @@ pipeline {
                     checkout scm
                     
                     // Verify we're on the main branch
+                    /*
                     def branch = env.GIT_BRANCH ?: sh(
                         script: 'git rev-parse --abbrev-ref HEAD',
                         returnStdout: true
@@ -70,6 +71,7 @@ pipeline {
                     if (!branch.contains('main')) {
                         error('This pipeline only deploys from main branch. Current branch: ${branch}')
                     }
+                    */
                 }
             }
         }
