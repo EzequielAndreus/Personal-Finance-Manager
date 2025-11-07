@@ -98,6 +98,7 @@ pipeline {
                         # Clean up .env file
                         rm -f .env
                     '''
+                    }
                 }
             }
             post {
