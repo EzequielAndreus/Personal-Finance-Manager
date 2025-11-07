@@ -31,24 +31,24 @@ pipeline {
             steps {
                 sshagent(['pfm-ec2-ssh-key']) {
                     script {
-                        echo "🔍 Checking SSH connectivity to ${EC2_USER}@${EC2_HOST} ..."
+                        echo '🔍 Checking SSH connectivity to ${EC2_USER}@${EC2_HOST} ...'
                         
                         // Run a short SSH test with a 5-second timeout
                         def result = sh(
-                            script: """
+                            script: '''
                                 timeout 5s bash -c '
                                     ssh -o BatchMode=yes -o ConnectTimeout=5 \
-                                    -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} "echo ok" \
+                                    -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} 'echo ok' \
                                     2>/dev/null
                                 '
-                            """,
+                            ''',
                             returnStatus: true
                         )
 
                         if (result != 0) {
-                            error "SSH connection to ${EC2_HOST} failed! Aborting pipeline."
+                            error 'SSH connection to ${EC2_HOST} failed! Aborting pipeline.'
                         } else {
-                            echo "SSH connection to ${EC2_HOST} verified successfully."
+                            echo 'SSH connection to ${EC2_HOST} verified successfully.'
                         }
                     }
                 }
@@ -58,7 +58,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 script {
-                    echo "Checking out code from ${env.GIT_BRANCH}"
+                    echo 'Checking out code from ${env.GIT_BRANCH}'
                     checkout scm
                     
                     // Verify we're on the main branch
@@ -68,7 +68,7 @@ pipeline {
                     ).trim()
                     
                     if (!branch.contains('main')) {
-                        error("This pipeline only deploys from main branch. Current branch: ${branch}")
+                        error('This pipeline only deploys from main branch. Current branch: ${branch}')
                     }
                 }
             }
@@ -77,7 +77,7 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    echo "Running test suite..."
+                    echo 'Running test suite...'
                     sh '''
                         # Build test image
                         docker-compose build web
@@ -98,7 +98,7 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    echo "Building Docker image..."
+                    echo 'Building Docker image...'
                     sh '''
                         # Build production image
                         docker build -t ${APP_NAME}:${BUILD_NUMBER} .
@@ -111,7 +111,7 @@ pipeline {
         stage('Deploy to EC2') {
             steps {
                 script {
-                    echo "Deploying to EC2 instance..."
+                    echo 'Deploying to EC2 instance...'
                     
                     // Get EC2 connection details from Jenkins credentials or parameters
                     def ec2User = env.EC2_USER ?: 'ubuntu'
@@ -120,22 +120,22 @@ pipeline {
                     // Use SSH to deploy to EC2 with environment variables from Jenkins credentials
                     sshagent(credentials: ['pfm-ec2-ssh-key']) {
                         // Create deployment directory and backup folder
-                        sh """
+                        sh '''
                             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${ec2User}@${ec2Host} \\
-                                "mkdir -p ${DEPLOY_DIR} && mkdir -p ${DEPLOY_DIR}/backup"
-                        """
+                                'mkdir -p ${DEPLOY_DIR} && mkdir -p ${DEPLOY_DIR}/backup'
+                        '''
                         
                         // Create backup of current deployment
                         sh '''
                             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${ec2User}@${ec2Host} \\
-                                "if [ -d ${DEPLOY_DIR}/.git ]; then \\
+                                'if [ -d ${DEPLOY_DIR}/.git ]; then \\
                                     cd ${DEPLOY_DIR} && \\
                                     tar -czf ${DEPLOY_DIR}/backup/backup-\\$(date +%Y%m%d-%H%M%S).tar.gz . || true; \\
-                                 fi"
+                                 fi'
                         '''
                         
                         // Copy files to EC2 (excluding unnecessary files)
-                        sh """
+                        sh '''
                             rsync -avz --delete \\
                                 --exclude '.git' \\
                                 --exclude '__pycache__' \\
@@ -146,9 +146,9 @@ pipeline {
                                 --exclude 'tests/' \\
                                 --exclude '.pytest_cache' \\
                                 --exclude 'uv.lock' \\
-                                -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \\
+                                -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' \\
                                 ./ ${ec2User}@${ec2Host}:${DEPLOY_DIR}/
-                        """
+                        '''
                         
                         // Deploy on EC2 with environment variables from Jenkins credentials
                         withCredentials([
@@ -179,38 +179,38 @@ pipeline {
                                     docker image prune -f || true
                                     
                                     # Build new containers
-                                    echo "Building Docker images..."
+                                    echo 'Building Docker images...'
                                     docker-compose -f ${COMPOSE_FILE} build --no-cache
                                     
                                     # Start new containers with environment variables
-                                    echo "Starting containers..."
+                                    echo 'Starting containers...'
                                     docker-compose -f ${COMPOSE_FILE} up -d
                                     
                                     # Wait for services to be healthy
-                                    echo "Waiting for services to be healthy..."
+                                    echo 'Waiting for services to be healthy...'
                                     sleep 15
                                     
                                     # Run database migrations if needed
-                                    echo "Running database migrations..."
+                                    echo 'Running database migrations...'
                                     docker-compose -f ${COMPOSE_FILE} exec -T web python -c \\
-                                        "from src.app import create_app; from src.models import db; \\
-                                         app = create_app(); app.app_context().push(); db.create_all()" || true
+                                        'from src.app import create_app; from src.models import db; \\
+                                         app = create_app(); app.app_context().push(); db.create_all()' || true
                                     
                                     # Health check
-                                    echo "Performing health check..."
+                                    echo 'Performing health check...'
                                     MAX_RETRIES=30
                                     RETRY_COUNT=0
                                     while [ \\\\$RETRY_COUNT -lt \\\\$MAX_RETRIES ]; do
                                         if curl -f http://localhost:5001/ > /dev/null 2>&1; then
-                                            echo "Health check passed!"
+                                            echo 'Health check passed!'
                                             exit 0
                                         fi
                                         RETRY_COUNT=\\\\$((RETRY_COUNT + 1))
-                                        echo "Waiting for application to be ready... (\\\\$RETRY_COUNT/\\\\$MAX_RETRIES)"
+                                        echo 'Waiting for application to be ready... (\\\\$RETRY_COUNT/\\\\$MAX_RETRIES)'
                                         sleep 2
                                     done
                                     
-                                    echo "Health check failed after \\\\$MAX_RETRIES attempts"
+                                    echo 'Health check failed after \\\\$MAX_RETRIES attempts'
                                     docker-compose -f ${COMPOSE_FILE} logs --tail=50
                                     exit 1
 REMOTE_SCRIPT
@@ -222,17 +222,17 @@ REMOTE_SCRIPT
             post {
                 success {
                     script {
-                        echo "Deployment successful!"
+                        echo 'Deployment successful!'
                         // Optional: Send notification
-                        // slackSend(color: 'good', message: "Deployment successful: ${env.BUILD_URL}")
+                        // slackSend(color: 'good', message: 'Deployment successful: ${env.BUILD_URL}')
                     }
                 }
                 failure {
                     script {
-                        echo "Deployment failed! Check logs above."
+                        echo 'Deployment failed! Check logs above.'
                         // Optional: Rollback logic
                         // sshagent(credentials: ['pfm-ec2-ssh-key']) {
-                        //     sh "ssh ${EC2_USER}@${EC2_HOST} 'cd ${DEPLOY_DIR} && docker-compose -f ${COMPOSE_FILE} down && [ -d backup ] && tar -xzf \$(ls -t backup/*.tar.gz | head -1) -C .'"
+                        //     sh 'ssh ${EC2_USER}@${EC2_HOST} 'cd ${DEPLOY_DIR} && docker-compose -f ${COMPOSE_FILE} down && [ -d backup ] && tar -xzf \$(ls -t backup/*.tar.gz | head -1) -C .''
                         // }
                     }
                 }
@@ -252,13 +252,13 @@ REMOTE_SCRIPT
             archiveArtifacts artifacts: '**/*.log', allowEmptyArchive: true
         }
         success {
-            echo "Pipeline completed successfully!"
+            echo 'Pipeline completed successfully!'
         }
         failure {
-            echo "Pipeline failed. Check logs for details."
+            echo 'Pipeline failed. Check logs for details.'
         }
         unstable {
-            echo "Pipeline is unstable."
+            echo 'Pipeline is unstable.'
         }
     }
 }
