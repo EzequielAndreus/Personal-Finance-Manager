@@ -159,7 +159,7 @@ pipeline {
                         ]) {
                             // Deploy on EC2 - pass environment variables via SSH command
                             // Use unquoted heredoc so Jenkins variables expand, but escape remote shell variables
-                            sh """
+                            sh '''
                                 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${ec2User}@${ec2Host} bash -s << REMOTE_SCRIPT
                                     set -e
                                     cd ${DEPLOY_DIR}
@@ -214,7 +214,7 @@ pipeline {
                                     docker-compose -f ${COMPOSE_FILE} logs --tail=50
                                     exit 1
 REMOTE_SCRIPT
-                            """
+                            '''
                         }
                     }
                 }
