@@ -92,6 +92,18 @@ pipeline {
                         # Build test image
                         docker-compose build web
                         
+                        # Check connection to the database
+                        docker-compose run --rm web python -c "
+                        import psycopg2, os
+                        try:
+                            conn = psycopg2.connect(os.environ['DATABASE_URL'])
+                            print('Connection successful!')
+                            conn.close()
+                        except Exception as e:
+                            print('Connection failed:', e)
+                            exit(1)
+                        " 
+
                         # Run tests
                         docker-compose run --rm web python -m pytest -v || exit 1
 
