@@ -100,7 +100,7 @@ import os
 import sys
 
 try:
-    conn = psycopg2.connect(os.environ['DATABASE_URL'])
+    conn = psycopg2.connect(os.environ['DATABASE_URL'].replace('postgresql+psycopg2://', 'postgresql://'))
     print('Connection successful!')
     conn.close()
 except Exception as e:
