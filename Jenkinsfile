@@ -126,13 +126,13 @@ pipeline {
                         """
                         
                         // Create backup of current deployment
-                        sh """
+                        sh '''
                             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${ec2User}@${ec2Host} \\
                                 "if [ -d ${DEPLOY_DIR}/.git ]; then \\
                                     cd ${DEPLOY_DIR} && \\
                                     tar -czf ${DEPLOY_DIR}/backup/backup-\\$(date +%Y%m%d-%H%M%S).tar.gz . || true; \\
                                  fi"
-                        """
+                        '''
                         
                         // Copy files to EC2 (excluding unnecessary files)
                         sh """
