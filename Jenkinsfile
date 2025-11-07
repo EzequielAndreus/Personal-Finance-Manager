@@ -80,12 +80,23 @@ pipeline {
             steps {
                 script {
                     echo 'Running test suite...'
+                    withCredentials([
+                        string(credentialsId: 'pfm-database-url', variable: 'DATABASE_URL'),
+                        string(credentialsId: 'pfm-flask-secret-key', variable: 'SECRET_KEY')
+                    ]) {
                     sh '''
+                        # Create a temporary .env file for docker-compose
+                        echo "DATABASE_URL=${DATABASE_URL}" > .env
+                        echo "SECRET_KEY=${SECRET_KEY}" >> .env
+
                         # Build test image
                         docker-compose build web
                         
                         # Run tests
                         docker-compose run --rm web python -m pytest -v || exit 1
+
+                        # Clean up .env file
+                        rm -f .env
                     '''
                 }
             }
