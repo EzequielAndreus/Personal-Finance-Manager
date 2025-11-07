@@ -94,15 +94,19 @@ pipeline {
                         
                         # Check connection to the database
                         echo 'Checking database connection...'
-                        docker-compose run --rm web python -c "import psycopg2, os; \
-                        try: \
-                            conn = psycopg2.connect(os.environ['DATABASE_URL']) \
-                            print('Connection successful!') \
-                            conn.close() \
-                        except Exception as e: \
-                            print('Connection failed:', e) \
-                            exit(1)
-                        "
+                        docker-compose run --rm web python -c "
+import psycopg2
+import os
+import sys
+
+try:
+    conn = psycopg2.connect(os.environ['DATABASE_URL'])
+    print('Connection successful!')
+    conn.close()
+except Exception as e:
+    print('Connection failed:', e)
+    sys.exit(1)
+"
 
                         # Run tests
                         docker-compose run --rm web python -m pytest -v || exit 1
