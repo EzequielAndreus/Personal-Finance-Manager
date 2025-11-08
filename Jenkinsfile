@@ -156,8 +156,8 @@ except Exception as e:
                         // Create deployment directory and backup folder
                         sh '''
                             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${EC2_USER}@${EC2_HOST} \\
-                            mkdir -p $DEPLOY_DIR \\
-                            mkdir -p $DEPLOY_DIR/backup \\
+                            sudo mkdir -p $DEPLOY_DIR \\
+                            sudo mkdir -p $DEPLOY_DIR/backup \\
                         '''
                         
                         // Create backup of current deployment
