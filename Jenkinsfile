@@ -147,6 +147,7 @@ except Exception as e:
 
                     // Check that DEPLOY_DIR is set
                     if (!DEPLOY_DIR) {
+                        echo '${DEPLOY_DIR}'
                         error 'DEPLOY_DIR is not set! Aborting deployment.'
                     }
                     
