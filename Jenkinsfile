@@ -159,10 +159,10 @@ except Exception as e:
                         '''
 
                         // Create directories in the deployment directory
-                        sh '''
-                            "mkdir -p ${DEPLOY_DIR}" \\
-                            "mkdir -p ${DEPLOY_DIR}/backup" \\
-                        '''
+                        sh """
+                            mkdir -p ${DEPLOY_DIR} \\
+                            mkdir -p ${DEPLOY_DIR}/backup \\
+                        """
                         
                         // Create backup of current deployment
                         sh '''
