@@ -149,14 +149,14 @@ except Exception as e:
                     if (!DEPLOY_DIR) {
                         error 'DEPLOY_DIR is not set! Aborting deployment.'
                     }
-                    echo 'DEPLOY DIR = ${DEPLOY_DIR}'
+                    echo 'Deployment directory: "${DEPLOY_DIR}"'
                     
                     // Use SSH to deploy to EC2 with environment variables from Jenkins credentials
                     sshagent(credentials: ['pfm-ec2-ssh-key']) {
                         // Create deployment directory and backup folder
                         sh '''
                             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${EC2_USER}@${EC2_HOST} \\
-                                'mkdir -p ${DEPLOY_DIR} && mkdir -p ${DEPLOY_DIR}/backup'
+                                'mkdir -p "${DEPLOY_DIR}" && mkdir -p "${DEPLOY_DIR}/backup"'
                         '''
                         
                         // Create backup of current deployment
