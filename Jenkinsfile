@@ -143,21 +143,17 @@ except Exception as e:
                 script {
                     echo 'Deploying to EC2 instance...'
                     
-                    // Get EC2 connection details from Jenkins credentials or parameters
-                    def ec2User = env.EC2_USER ?: 'ubuntu'
-                    def ec2Host = env.EC2_HOST ?: error('EC2_HOST environment variable must be set')
-                    
                     // Use SSH to deploy to EC2 with environment variables from Jenkins credentials
                     sshagent(credentials: ['pfm-ec2-ssh-key']) {
                         // Create deployment directory and backup folder
                         sh '''
-                            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${ec2User}@${ec2Host} \\
+                            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${EC2_USER}@${EC2_HOST} \\
                                 'mkdir -p ${DEPLOY_DIR} && mkdir -p ${DEPLOY_DIR}/backup'
                         '''
                         
                         // Create backup of current deployment
                         sh '''
-                            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${ec2User}@${ec2Host} \\
+                            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${EC2_USER}@${EC2_HOST} \\
                                 'if [ -d ${DEPLOY_DIR}/.git ]; then \\
                                     cd ${DEPLOY_DIR} && \\
                                     tar -czf ${DEPLOY_DIR}/backup/backup-\\$(date +%Y%m%d-%H%M%S).tar.gz . || true; \\
@@ -177,7 +173,7 @@ except Exception as e:
                                 --exclude '.pytest_cache' \\
                                 --exclude 'uv.lock' \\
                                 -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' \\
-                                ./ ${ec2User}@${ec2Host}:${DEPLOY_DIR}/
+                                ./ ${EC2_USER}@${EC2_HOST}:${DEPLOY_DIR}/
                         '''
                         
                         // Deploy on EC2 with environment variables from Jenkins credentials
@@ -190,7 +186,7 @@ except Exception as e:
                             // Deploy on EC2 - pass environment variables via SSH command
                             // Use unquoted heredoc so Jenkins variables expand, but escape remote shell variables
                             sh '''
-                                ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${ec2User}@${ec2Host} bash -s << REMOTE_SCRIPT
+                                ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${EC2_USER}@${EC2_HOST} bash -s << REMOTE_SCRIPT
                                     set -e
                                     cd ${DEPLOY_DIR}
                                     
