@@ -165,7 +165,8 @@ except Exception as e:
                             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${EC2_USER}@${EC2_HOST} \\
                                 'if [ -d ${DEPLOY_DIR}/.git ]; then \\
                                     cd ${DEPLOY_DIR} && \\
-                                    tar -czf ${DEPLOY_DIR}/backup/backup-\\$(date +%Y%m%d-%H%M%S).tar.gz . || true; \\
+                                    tar -czf ${DEPLOY_DIR}/backup/backup-\\
+                                    $(date +%Y%m%d-%H%M%S).tar.gz . || true; \\
                                  fi'
                         '''
                         
