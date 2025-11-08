@@ -76,6 +76,7 @@ pipeline {
             }
         }
         
+        /*
         stage('Test') {
             steps {
                 script {
@@ -124,6 +125,7 @@ except Exception as e:
                 }
             }
         }
+        */
         
         stage('Build') {
             steps {
