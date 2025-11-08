@@ -154,12 +154,8 @@ except Exception as e:
                     // Use SSH to deploy to EC2 with environment variables from Jenkins credentials
                     sshagent(credentials: ['pfm-ec2-ssh-key']) {
                         // Create deployment directory and backup folder
-                        sh '''
-                            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${EC2_USER}@${EC2_HOST} \\
-                        '''
-
-                        // Create directories in the deployment directory
                         sh """
+                            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${EC2_USER}@${EC2_HOST} \\
                             mkdir -p ${DEPLOY_DIR} \\
                             mkdir -p ${DEPLOY_DIR}/backup \\
                         """
