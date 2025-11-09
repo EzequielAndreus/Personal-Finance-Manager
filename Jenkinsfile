@@ -173,7 +173,6 @@ except Exception as e:
                                 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${EC2_USER}@${EC2_HOST} bash -s << 'REMOTE_SCRIPT'
                                     set -e
 
-                                    mkdir -p ${DEPLOY_DIR}
                                     cd ${DEPLOY_DIR}
 
                                     if [ -d ".git" ]; then
