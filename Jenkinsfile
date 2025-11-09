@@ -176,7 +176,7 @@ except Exception as e:
                         
                         // Copy files to EC2 (excluding unnecessary files)
                         sh '''
-                            rsync -avz --delete \\
+                            sudo rsync -avz --delete \\
                                 --exclude '.git' \\
                                 --exclude '__pycache__' \\
                                 --exclude '*.pyc' \\
