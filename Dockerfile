@@ -6,8 +6,11 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Update and install system dependencies
 RUN apt-get update && \
-    apt-get install -y python3 python3-pip curl && \
+    apt-get install -y python3 curl && \
     apt-get clean
+
+# Install uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Set working directory
 WORKDIR /app
@@ -19,7 +22,7 @@ ENV PYTHONPATH=/app/src
 COPY . /app
 
 # Install dependencies
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN uv sync
 
 # Expose Flask port
 EXPOSE 5001
