@@ -175,8 +175,9 @@ except Exception as e:
                         */
                         
                         // Copy files to EC2 (excluding unnecessary files)
+                        /*
                         sh '''
-                            sudo rsync -avz --delete \\
+                            rsync -avz --delete \\
                                 --exclude '.git' \\
                                 --exclude '__pycache__' \\
                                 --exclude '*.pyc' \\
@@ -189,6 +190,7 @@ except Exception as e:
                                 -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' \\
                                 ./ ${EC2_USER}@${EC2_HOST}:${DEPLOY_DIR}/
                         '''
+                        */
                         
                         // Deploy on EC2 with environment variables from Jenkins credentials
                         withCredentials([
