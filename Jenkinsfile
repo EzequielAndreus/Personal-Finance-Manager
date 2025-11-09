@@ -74,19 +74,8 @@ pipeline {
                                 echo "Navigating to deployment directory..."
                                 cd ${DEPLOY_DIR}
 
-                                # If already cloned, just pull the latest version
-                                if [ -d .git ]; then
-                                    echo "Repository already exists. Pulling latest changes..."
-                                    git pull origin main
-                                else
-                                    echo "Cloning repository..."
-                                    git clone "${REPO_URL}"
-                                fi
-
-                                echo "Pulling latest changes from ${DEPLOY_BRANCH} branch..."
-                                git fetch origin
-                                git checkout ${DEPLOY_BRANCH}
-                                git pull origin ${DEPLOY_BRANCH}
+                                echo "Pulling latest changes"
+                                git pull origin main
                                 
                                 echo "Building and starting Docker containers..."
                                 docker-compose -f ${COMPOSE_FILE} pull
