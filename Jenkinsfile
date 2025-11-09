@@ -19,6 +19,8 @@ pipeline {
         DEPLOY_DIR = '/home/ubuntu/pfm-deployment'
         // Docker Compose file for production
         COMPOSE_FILE = 'docker-compose.prod.yml'
+        // Git repository URL
+        REPO_URL = 'https://github.com/EzequielAndreus/Personal-Finance-Manager.git'
         // Branch to deploy
         DEPLOY_BRANCH = 'main'
         // EC2 connection details (configure in Jenkins credentials or pipeline parameters)
@@ -68,7 +70,16 @@ pipeline {
                                 
                                 echo "Navigating to deployment directory..."
                                 cd ${DEPLOY_DIR}
-                                
+
+                                # If already cloned, just pull the latest version
+                                if [ -d .git ]; then
+                                    echo "Repository already exists. Pulling latest changes..."
+                                    git pull origin main
+                                else
+                                    echo "Cloning repository..."
+                                    git clone $REPO_URL .
+                                fi
+
                                 echo "Pulling latest changes from ${DEPLOY_BRANCH} branch..."
                                 git fetch origin
                                 git checkout ${DEPLOY_BRANCH}
