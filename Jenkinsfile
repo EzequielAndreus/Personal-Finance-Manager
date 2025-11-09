@@ -77,7 +77,7 @@ pipeline {
                                     git pull origin main
                                 else
                                     echo "Cloning repository..."
-                                    git clone ${REPO_URL}
+                                    git clone "${REPO_URL}"
                                 fi
 
                                 echo "Pulling latest changes from ${DEPLOY_BRANCH} branch..."
