@@ -1,13 +1,13 @@
 services:
   web:
+    network_mode: host
     build: .
     container_name: pfm_web_prod
     command: python3 src/app.py
     ports:
       - "5001:5000"
     environment:
-      # Database connection via RDS Proxy
-      # DATABASE_URL should be in format: postgresql+psycopg2://user:password@rds-proxy-endpoint:port/dbname
+      # DATABASE_URL should be in format: postgresql+psycopg2://user:password@rds-endpoint:port/dbname
       - DATABASE_URL=${DATABASE_URL}
       - SECRET_KEY=${SECRET_KEY}
       - PORT=5000
