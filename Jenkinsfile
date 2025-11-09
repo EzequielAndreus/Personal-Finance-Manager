@@ -154,7 +154,7 @@ except Exception as e:
                     echo "Deployment directory: ${DEPLOY_DIR}"
                     
                     // Use SSH to deploy to EC2 with environment variables from Jenkins credentials
-                    sshagent(credentials: ['pfm-ec2-ssh-key']) {
+                    sshagent(credentials: ['pfm-production-ssh-key']) {
                         // Create deployment directory and backup folder
                         sh '''
                             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${EC2_USER}@${EC2_HOST} \\
@@ -271,7 +271,7 @@ REMOTE_SCRIPT
                     script {
                         echo 'Deployment failed! Check logs above.'
                         // Optional: Rollback logic
-                        // sshagent(credentials: ['pfm-ec2-ssh-key']) {
+                        // sshagent(credentials: ['pfm-production-ssh-key']) {
                         //     sh 'ssh ${EC2_USER}@${EC2_HOST} 'cd ${DEPLOY_DIR} && docker-compose -f ${COMPOSE_FILE} down && [ -d backup ] && tar -xzf \$(ls -t backup/*.tar.gz | head -1) -C .''
                         // }
                     }
