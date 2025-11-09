@@ -127,6 +127,7 @@ except Exception as e:
         }
         */
         
+        /*
         stage('Build') {
             steps {
                 script {
@@ -139,6 +140,7 @@ except Exception as e:
                 }
             }
         }
+        */
         
         stage('Deploy to EC2') {
             steps {
