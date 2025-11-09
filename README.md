@@ -216,8 +216,7 @@ Milestone-1/
 ├── docker-compose.yml       # Development Docker setup
 ├── docker-compose.prod.yml  # Production Docker setup
 ├── Dockerfile              # Docker image configuration
-├── Makefile               # Development commands
-└── requirements.txt       # Python dependencies
+└── Makefile               # Development commands
 ```
 
 ## 🔐 Security Features
