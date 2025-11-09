@@ -81,7 +81,7 @@ pipeline {
                                 export SECRET_KEY="${SECRET_KEY}"
                                 export FLASK_ENV='${FLASK_ENV}'
                                 export FLASK_DEBUG=0
-                                export SEED_PREDEFINED='${SEED_PREDEFINED}'
+                                export SEED_PREDEFINED=0
 
                                 echo "Pulling latest changes"
                                 git pull origin main
