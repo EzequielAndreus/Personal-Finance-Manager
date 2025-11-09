@@ -161,6 +161,7 @@ except Exception as e:
                         '''
                         
                         // Create backup of current deployment
+                        /*
                         sh '''
                             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${EC2_USER}@${EC2_HOST} \\
                                 'if [ -d ${DEPLOY_DIR}/.git ]; then \\
@@ -169,6 +170,7 @@ except Exception as e:
                                     $(date +%Y%m%d-%H%M%S).tar.gz . || true; \\
                                  fi'
                         '''
+                        */
                         
                         // Copy files to EC2 (excluding unnecessary files)
                         sh '''
