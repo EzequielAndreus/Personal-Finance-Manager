@@ -26,6 +26,9 @@ pipeline {
         // EC2 connection details (configure in Jenkins credentials or pipeline parameters)
         EC2_USER = credentials('pfm-production-username')
         EC2_HOST = credentials('pfm-production-host')
+        // Databse URL
+        DATABASE_URL = credentials('pfm-database-url')
+        SECRET_KEY = credentials('pfm-flask-secret-key')
     }
     
     stages {
