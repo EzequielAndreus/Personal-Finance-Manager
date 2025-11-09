@@ -14,7 +14,7 @@ pipeline {
     
     environment {
         // Application name
-        APP_NAME = 'pfm'
+        APP_NAME = 'personal-finance-manager'
         // Deployment directory on EC2
         DEPLOY_DIR = '/opt/pfm'
         // Docker Compose file for production
@@ -22,14 +22,14 @@ pipeline {
         // Branch to deploy
         DEPLOY_BRANCH = 'main'
         // EC2 connection details (configure in Jenkins credentials or pipeline parameters)
-        EC2_USER = credentials('pfm-ec2-username')
-        EC2_HOST = credentials('pfm-ec2-host')
+        EC2_USER = credentials('pfm-production-username')
+        EC2_HOST = credentials('pfm-production-host')
     }
     
     stages {
         stage('Check Connection') {
             steps {
-                sshagent(['pfm-ec2-ssh-key']) {
+                sshagent(['pfm-production-ssh-key']) {
                     script {
                         echo '🔍 Checking SSH connectivity to ${EC2_USER}@${EC2_HOST} ...'
                         
