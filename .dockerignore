@@ -71,10 +71,6 @@ Dockerfile*
 docker-compose*
 .dockerignore
 
-# Documentation
-README.md
-*.md
-
 # Temporary files
 tmp/
 temp/
