@@ -64,7 +64,7 @@ pipeline {
 
                     // Connect using SSH
                     sshagent(['pfm-production-ssh-key']) {
-                        sh '''
+                        sh """
                             ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
                                 set -e
                                 
@@ -91,7 +91,7 @@ pipeline {
                                 
                                 echo "Deployment completed successfully."
                             '
-                        '''
+                        """
                     }
                 }
             }
