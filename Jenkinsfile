@@ -294,23 +294,22 @@ except Exception as e:
                     }
                 }
             }
-            }
-            post {
-                success {
-                    script {
-                        echo 'Deployment successful!'
-                        // Optional: Send notification
-                        // slackSend(color: 'good', message: 'Deployment successful: ${env.BUILD_URL}')
-                    }
+        }
+        post {
+            success {
+                script {
+                    echo 'Deployment successful!'
+                    // Optional: Send notification
+                    // slackSend(color: 'good', message: 'Deployment successful: ${env.BUILD_URL}')
                 }
-                failure {
-                    script {
-                        echo 'Deployment failed! Check logs above.'
-                        // Optional: Rollback logic
-                        // sshagent(credentials: ['pfm-production-ssh-key']) {
-                        //     sh 'ssh ${EC2_USER}@${EC2_HOST} 'cd ${DEPLOY_DIR} && docker-compose -f ${COMPOSE_FILE} down && [ -d backup ] && tar -xzf \$(ls -t backup/*.tar.gz | head -1) -C .''
-                        // }
-                    }
+            }
+            failure {
+                script {
+                    echo 'Deployment failed! Check logs above.'
+                    // Optional: Rollback logic
+                    // sshagent(credentials: ['pfm-production-ssh-key']) {
+                    //     sh 'ssh ${EC2_USER}@${EC2_HOST} 'cd ${DEPLOY_DIR} && docker-compose -f ${COMPOSE_FILE} down && [ -d backup ] && tar -xzf \$(ls -t backup/*.tar.gz | head -1) -C .''
+                    // }
                 }
             }
         }
