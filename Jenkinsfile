@@ -294,7 +294,6 @@ except Exception as e:
                     }
                 }
             }
-        }
             post {
                 success {
                     script {
@@ -313,6 +312,7 @@ except Exception as e:
                     }
                 }
             }
+        }
     }
     
     post {
