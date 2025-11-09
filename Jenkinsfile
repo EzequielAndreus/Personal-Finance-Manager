@@ -16,7 +16,7 @@ pipeline {
         // Application name
         APP_NAME = 'personal-finance-manager'
         // Deployment directory on EC2
-        DEPLOY_DIR = '/home/ubuntu/pfm-deployment'
+        DEPLOY_DIR = '/home/ubuntu/Personal-Finance-Manager'
         // Docker Compose file for production
         COMPOSE_FILE = 'docker-compose.prod.yml'
         // Git repository URL
