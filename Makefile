@@ -38,16 +38,16 @@ db-shell:
 
 # Testing (inside docker)
 test:
-	docker-compose exec web python -m pytest
+	docker-compose exec web uv run pytest
 
 test-unit:
-	docker-compose exec web python -m pytest -m unit
+	docker-compose exec web uv run pytest -m unit
 
 test-integration:
-	docker-compose exec web python -m pytest -m integration
+	docker-compose exec web uv run pytest -m integration
 
 test-cov:
-	docker-compose exec web python -m pytest --cov=src --cov=models --cov-report=term-missing
+	docker-compose exec web uv run pytest --cov=src --cov=models --cov-report=term-missing
 
 # Production environment
 prod-up:
@@ -58,7 +58,7 @@ prod-down:
 
 # Database operations
 migrate:
-	docker-compose exec web python -c "from src.app import create_app; from src.models import db; app = create_app(); app.app_context().push(); db.create_all()"
+	docker-compose exec web uv run python -c "from src.app import create_app; from src.models import db; app = create_app(); app.app_context().push(); db.create_all()"
 
 # Cleanup
 clean:
