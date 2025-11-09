@@ -162,6 +162,38 @@ except Exception as e:
                             sudo mkdir -p $DEPLOY_DIR/backup \\
                         '''
                         
+                        script {
+                            // Use the workspace repo URL and desired branch to update on the server instead of copying files
+                            def REPO_URL = sh(script: "git config --get remote.origin.url", returnStdout: true).trim()
+                            def BRANCH = env.DEPLOY_BRANCH ?: sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
+
+                            sh """
+                                ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${EC2_USER}@${EC2_HOST} bash -s << 'REMOTE_SCRIPT'
+                                    set -e
+
+                                    mkdir -p ${DEPLOY_DIR}
+                                    cd ${DEPLOY_DIR}
+
+                                    if [ -d ".git" ]; then
+                                        echo "Repository exists on remote — updating..."
+                                        git fetch --all --prune
+                                        # Ensure branch exists and reset to remote branch
+                                        git checkout ${BRANCH} || git checkout -b ${BRANCH} origin/${BRANCH} || true
+                                        git reset --hard origin/${BRANCH} || true
+                                    else
+                                        echo "Cloning repository on remote..."
+                                        git clone --depth 1 --branch ${BRANCH} '${REPO_URL}' ${DEPLOY_DIR}
+                                        cd ${DEPLOY_DIR}
+                                    fi
+
+                                    # Bring services up (pull images if updated, then rebuild/start)
+                                    docker-compose -f ${COMPOSE_FILE} pull || true
+                                    docker-compose -f ${COMPOSE_FILE} up -d --build
+                        REMOTE_SCRIPT
+                            """
+                        }
+
+
                         // Create backup of current deployment
                         /*
                         sh '''
@@ -192,6 +224,7 @@ except Exception as e:
                         '''
                         */
                         
+                        /*
                         // Deploy on EC2 with environment variables from Jenkins credentials
                         withCredentials([
                             string(credentialsId: 'pfm-database-url', variable: 'DATABASE_URL'),
@@ -257,6 +290,7 @@ except Exception as e:
                                     exit 1
 REMOTE_SCRIPT
                             '''
+                            */
                         }
                     }
                 }
