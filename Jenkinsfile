@@ -74,6 +74,13 @@ pipeline {
                                 echo "Navigating to deployment directory..."
                                 cd ${DEPLOY_DIR}
 
+                                echo "Setting environment variables..."
+                                export DATABASE_URL="${DATABASE_URL}"
+                                export SECRET_KEY="${SECRET_KEY}"
+                                export FLASK_ENV='${FLASK_ENV}'
+                                export FLASK_DEBUG=0
+                                export SEED_PREDEFINED='${SEED_PREDEFINED}'
+
                                 echo "Pulling latest changes"
                                 git pull origin main
                                 
