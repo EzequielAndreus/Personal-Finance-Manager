@@ -29,6 +29,8 @@ pipeline {
         // Databse URL
         DATABASE_URL = credentials('pfm-database-url')
         SECRET_KEY = credentials('pfm-flask-secret-key')
+        // Flask environment
+        FLASK_ENV = 'production'
     }
     
     stages {
