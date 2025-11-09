@@ -288,12 +288,12 @@ except Exception as e:
                                     echo 'Health check failed after \\\\$MAX_RETRIES attempts'
                                     docker-compose -f ${COMPOSE_FILE} logs --tail=50
                                     exit 1
-REMOTE_SCRIPT
+    REMOTE_SCRIPT
                             '''
-                            */
-                        }
+                        */
                     }
                 }
+            }
             }
             post {
                 success {
