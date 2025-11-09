@@ -6,11 +6,11 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Update and install system dependencies
 RUN apt-get update && \
-    apt-get install -y python3 curl && \
+    apt-get install -y python3 python3-pip curl && \
     apt-get clean
 
 # Install uv
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+RUN pip install uv
 
 # Set working directory
 WORKDIR /app
