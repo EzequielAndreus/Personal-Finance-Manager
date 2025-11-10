@@ -9,6 +9,9 @@ RUN apt-get update && \
     apt-get install -y python3 python3-pip curl && \
     apt-get clean
 
+# Install uv
+RUN pip install uv
+
 # Set working directory
 WORKDIR /app
 
@@ -19,10 +22,10 @@ ENV PYTHONPATH=/app/src
 COPY . /app
 
 # Install dependencies
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN uv sync
 
 # Expose Flask port
 EXPOSE 5001
 
 # Command to run the application
-CMD ["python3", "src/app.py"]
+CMD ["uv", "run", "src/app.py"]

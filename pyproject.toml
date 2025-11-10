@@ -7,8 +7,9 @@ requires-python = ">=3.11"
 dependencies = [
     "flask>=3.1.2",
     "flask-sqlalchemy>=3.1.1",
-    "psycopg2>=2.9.11",
+    "psycopg2-binary==2.9.11",
     "pytest>=8.4.2",
+    "pytest-cov==6.0.0",
 ]
 
 [build-system]
