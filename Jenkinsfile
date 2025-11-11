@@ -66,57 +66,19 @@ pipeline {
     stages {
         stage('Check Connection') {
             steps {
-                sshagent(['pfm-production-ssh-key']) {
                     script {
-                        echo 'Checking SSH connectivity to ${EC2_USER}@${EC2_HOST} ...'
-                        
-                        // Run a short SSH test with a 5-second timeout
-                        def result = sh(
-                            script: '''
-                                timeout 5s bash -c '
-                                    ssh -o BatchMode=yes -o ConnectTimeout=5 \
-                                    -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} 'echo ok' \
-                                    2>/dev/null
-                                '
-                            ''',
-                            returnStatus: true
-                        )
-
-                        if (result != 0) {
-                            error 'SSH connection to ${EC2_HOST} failed! Aborting pipeline.'
-                        } else {
-                            echo 'SSH connection to ${EC2_HOST} verified successfully.'
+                    def connectionVars = getConnectionCredentials()
+                    sshagent([params.ssh_key]) {
+                        checkSSHConnection(connectionVars)
                         }
                     }
                 }
             }
-        }
-        
         stage('Deploy to EC2') {
             steps {
                 script {
                     echo 'Deploying to EC2 instance...'
-
-                    // Extract credentials and build environment variables
-                    def envVars = [:]
-                    
-                    withCredentials([
-                        string(credentialsId: params.ec2_username, variable: 'EC2_USERNAME'),
-                        string(credentialsId: params.ec2_host, variable: 'EC2_HOST'),
-                        string(credentialsId: params.database_url, variable: 'DATABASE_URL'),
-                        string(credentialsId: params.flask_secret_key, variable: 'SECRET_KEY')
-                    ]) {
-                        envVars = [
-                            EC2_USERNAME: env.EC2_USERNAME,
-                            EC2_HOST: env.EC2_HOST,
-                            DATABASE_URL: env.DATABASE_URL,
-                            SECRET_KEY: env.SECRET_KEY,
-                            FLASK_ENV: params.flask_environment,
-                            DEPLOYMENT_BRANCH: params.deployment_branch
-                        ]
-                    }
-                    
-                    // Deploy using SSH
+                    def envVars = getAllDeploymentCredentials()
                     sshagent([params.ssh_key]) {
                         deployToEC2(envVars)
                     }
