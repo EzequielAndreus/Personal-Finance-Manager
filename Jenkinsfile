@@ -2,11 +2,7 @@ pipeline {
     agent any
     
     options {
-        // Discard old builds to save disk space
-        buildDiscarder(logRotator(numToKeepStr: '10'))
-        // Timeout after 10 minutes
-        timeout(time: 10, unit: 'MINUTES')
-        // Add timestamps to console output
+        timeout(time: 5, unit: 'MINUTES')
         timestamps()
     }
     
