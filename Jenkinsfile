@@ -149,6 +149,64 @@ pipeline {
     }
 }
 
+// Helper function to get connection credentials
+def getConnectionCredentials() {
+    def creds = [:]
+    withCredentials([
+        string(credentialsId: params.ec2_username, variable: 'EC2_USERNAME'),
+        string(credentialsId: params.ec2_host, variable: 'EC2_HOST')
+    ]) {
+        creds = [
+            EC2_USERNAME: env.EC2_USERNAME,
+            EC2_HOST: env.EC2_HOST
+        ]
+    }
+    return creds
+}
+
+// Helper function to get all deployment credentials
+def getAllDeploymentCredentials() {
+    def creds = [:]
+    withCredentials([
+        string(credentialsId: params.ec2_username, variable: 'EC2_USERNAME'),
+        string(credentialsId: params.ec2_host, variable: 'EC2_HOST'),
+        string(credentialsId: params.database_url, variable: 'DATABASE_URL'),
+        string(credentialsId: params.flask_secret_key, variable: 'SECRET_KEY')
+    ]) {
+        creds = [
+            EC2_USERNAME: env.EC2_USERNAME,
+            EC2_HOST: env.EC2_HOST,
+            DATABASE_URL: env.DATABASE_URL,
+            SECRET_KEY: env.SECRET_KEY,
+            FLASK_ENV: params.flask_environment,
+            DEPLOYMENT_BRANCH: params.deployment_branch
+        ]
+    }
+    return creds
+}
+
+// Helper function to check SSH connection
+def checkSSHConnection(Map connectionVars) {
+    echo "Checking SSH connectivity to ${connectionVars.EC2_USERNAME}@${connectionVars.EC2_HOST}..."
+    
+    def result = sh(
+        script: """
+            timeout 5s bash -c '
+                ssh -o BatchMode=yes -o ConnectTimeout=5 \
+                -o StrictHostKeyChecking=no ${connectionVars.EC2_USERNAME}@${connectionVars.EC2_HOST} "echo ok" \
+                2>/dev/null
+            '
+        """,
+        returnStatus: true
+    )
+    
+    if (result != 0) {
+        error "SSH connection to ${connectionVars.EC2_HOST} failed! Aborting pipeline."
+    } else {
+        echo "SSH connection to ${connectionVars.EC2_HOST} verified successfully."
+    }
+}
+
 // Helper function to deploy to EC2
 def deployToEC2(Map envVars) {
     def remoteScript = """
