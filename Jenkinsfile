@@ -8,29 +8,16 @@ pipeline {
         timeout(time: 10, unit: 'MINUTES')
         // Add timestamps to console output
         timestamps()
-        // Retry on failure (optional)
-        retry(2)
     }
     
-    environment {
-        // Application name
-        APP_NAME = 'personal-finance-manager'
-        // Deployment directory on EC2
-        DEPLOY_DIR = '/home/ubuntu/Personal-Finance-Manager'
-        // Docker Compose file for production
-        COMPOSE_FILE = 'docker-compose.prod.yml'
-        // Git repository URL
-        REPO_URL = 'https://github.com/EzequielAndreus/Personal-Finance-Manager.git'
-        // Branch to deploy
-        DEPLOY_BRANCH = 'main'
-        // EC2 connection details (configure in Jenkins credentials or pipeline parameters)
-        EC2_USER = credentials('pfm-production-username')
-        EC2_HOST = credentials('pfm-production-host')
-        // Databse URL
-        DATABASE_URL = credentials('pfm-database-url')
-        SECRET_KEY = credentials('pfm-flask-secret-key')
-        // Flask environment
-        FLASK_ENV = 'production'
+    parameters {
+      string(defaultValue: 'main', description: 'Branch that will be pulled', name: 'deployment_branch')
+      credentials(defaultValue: 'pfm-production-username', credentialType: 'org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl', description: 'Username used by Jenkins in the test EC2 instance', name: 'ec2_username', required: true)
+      credentials(defaultValue: 'pfm-production-host',credentialType: 'org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl', description: 'Private IP of the test instance', name: 'ec2_host', required: true)
+      credentials(defaultValue: 'pfm-database-url',credentialType: 'org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl', description: 'Link of the database (or proxy)', name: 'database_url', required: true)
+      credentials(defaultValue: 'pfm-flask-secret-key',credentialType: 'org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl', description: 'Secret key used with Flask', name: 'flask_secret_key', required: false)
+      string(defaultValue: 'production',description: 'Type of environment in which the Flask app will be run', name: 'flask_environment')
+      credentials(defaultValue: 'pfm-production-ssh-key',credentialType: 'com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey', description: 'Private SSH key of the test instance', name: 'ssh_key', required: true)
     }
     
     stages {
