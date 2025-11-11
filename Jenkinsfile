@@ -124,20 +124,10 @@ pipeline {
             }
             post {
                 success {
-                    script {
                         echo 'Deployment successful!'
-                        // Optional: Send notification
-                        // slackSend(color: 'good', message: 'Deployment successful: ${env.BUILD_URL}')
-                    }
                 }
                 failure {
-                    script {
                         echo 'Deployment failed! Check logs above.'
-                        // Optional: Rollback logic
-                        // sshagent(credentials: ['pfm-production-ssh-key']) {
-                        //     sh 'ssh ${EC2_USER}@${EC2_HOST} 'cd ${DEPLOY_DIR} && docker-compose -f ${COMPOSE_FILE} down && [ -d backup ] && tar -xzf \$(ls -t backup/*.tar.gz | head -1) -C .''
-                        // }
-                    }
                 }
             }
         }
@@ -145,14 +135,7 @@ pipeline {
     
     post {
         always {
-            // Clean up local Docker images
-            sh '''
-                docker image prune -f || true
-                docker-compose down -v || true
-            '''
-            
-            // Archive artifacts (optional)
-            archiveArtifacts artifacts: '**/*.log', allowEmptyArchive: true
+            cleanDockerResources()
         }
         success {
             echo 'Pipeline completed successfully!'
@@ -166,3 +149,62 @@ pipeline {
     }
 }
 
+// Helper function to deploy to EC2
+def deployToEC2(Map envVars) {
+    def remoteScript = """
+        set -e
+        
+        echo "Navigating to deployment directory..."
+        cd ${DEPLOYMENT_DIR}
+        
+        echo "Setting environment variables..."
+        export DATABASE_URL="${envVars.DATABASE_URL}"
+        export FLASK_ENV="${envVars.FLASK_ENV}"
+        export SECRET_KEY="${envVars.SECRET_KEY}"
+        export FLASK_DEBUG=0
+        export SEED_PREDEFINED=0
+        
+        echo "Pulling latest changes..."
+        git pull origin "${envVars.DEPLOYMENT_BRANCH}"
+        
+        echo "Stopping previous Docker container..."
+        docker compose -f ${COMPOSE_FILE} down || true
+        
+        echo "Building and starting Docker containers..."
+        docker compose -f ${COMPOSE_FILE} pull
+        docker compose -f ${COMPOSE_FILE} up -d --build --remove-orphans
+        
+        echo "Printing environment variables inside Docker container..."
+        docker compose -f ${COMPOSE_FILE} exec -T web env
+        
+        echo "Deployment completed successfully."
+    """
+    
+    sh """
+        ssh -o StrictHostKeyChecking=no "${envVars.EC2_USERNAME}@${envVars.EC2_HOST}" \
+            DATABASE_URL="${envVars.DATABASE_URL}" \
+            DEPLOYMENT_BRANCH="${envVars.DEPLOYMENT_BRANCH}" \
+            SECRET_KEY="${envVars.SECRET_KEY}" \
+            FLASK_ENV="${envVars.FLASK_ENV}" \
+            bash -s << 'REMOTE_SCRIPT'
+${remoteScript}
+REMOTE_SCRIPT
+    """
+}
+
+// Helper function to clean Docker resources
+def cleanDockerResources() {
+    sh '''
+        # Clean up unused Docker images
+        docker image prune -f || true
+        
+        # Only attempt docker-compose cleanup if docker-compose.yml exists
+        # and we're in a directory that might have containers
+        if [ -f docker-compose.yml ]; then
+            # Check if there are any running containers from this compose file
+            if docker-compose ps -q 2>/dev/null | grep -q .; then
+                docker-compose down -v || true
+            fi
+        fi
+    '''
+}
