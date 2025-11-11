@@ -54,32 +54,28 @@ pipeline {
                 script {
                     echo 'Deploying to EC2 instance...'
 
-                    // Connect using SSH
-                    sshagent(['pfm-production-ssh-key']) {
-                        sh """
-                            ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
-                                set -e
-                                
-                                echo "Navigating to deployment directory..."
-                                cd ${DEPLOY_DIR}
-
-                                echo "Setting environment variables..."
-                                export DATABASE_URL="${DATABASE_URL}"
-                                export SECRET_KEY="${SECRET_KEY}"
-                                export FLASK_ENV='${FLASK_ENV}'
-                                export FLASK_DEBUG=0
-                                export SEED_PREDEFINED=0
-
-                                echo "Pulling latest changes"
-                                git pull origin main
-                                
-                                echo "Building and starting Docker containers..."
-                                docker compose -f ${COMPOSE_FILE} pull
-                                docker compose -f ${COMPOSE_FILE} up -d --build --remove-orphans
-                                
-                                echo "Deployment completed successfully."
-                            '
-                        """
+                    // Extract credentials and build environment variables
+                    def envVars = [:]
+                    
+                    withCredentials([
+                        string(credentialsId: params.ec2_username, variable: 'EC2_USERNAME'),
+                        string(credentialsId: params.ec2_host, variable: 'EC2_HOST'),
+                        string(credentialsId: params.database_url, variable: 'DATABASE_URL'),
+                        string(credentialsId: params.flask_secret_key, variable: 'SECRET_KEY')
+                    ]) {
+                        envVars = [
+                            EC2_USERNAME: env.EC2_USERNAME,
+                            EC2_HOST: env.EC2_HOST,
+                            DATABASE_URL: env.DATABASE_URL,
+                            SECRET_KEY: env.SECRET_KEY,
+                            FLASK_ENV: params.flask_environment,
+                            DEPLOYMENT_BRANCH: params.deployment_branch
+                        ]
+                    }
+                    
+                    // Deploy using SSH
+                    sshagent([params.ssh_key]) {
+                        deployToEC2(envVars)
                     }
                 }
             }
