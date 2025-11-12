@@ -62,14 +62,14 @@ pipeline {
     stages {
         stage('Check Connection') {
             steps {
-                    script {
+                script {
                     def connectionVars = getConnectionCredentials()
                     sshagent([params.ssh_key]) {
                         checkSSHConnection(connectionVars)
-                        }
                     }
                 }
             }
+        }
         stage('Deploy to EC2') {
             steps {
                 script {
@@ -82,10 +82,11 @@ pipeline {
             }
             post {
                 success {
-                        echo 'Deployment successful!'
+                    echo 'Deployment successful!'
+                    proceedMessage()
                 }
                 failure {
-                        echo 'Deployment failed! Check logs above.'
+                    echo 'Deployment failed! Check logs above.'
                 }
             }
         }
@@ -162,6 +163,7 @@ def checkSSHConnection(Map connectionVars) {
         error "SSH connection to ${connectionVars.EC2_HOST} failed! Aborting pipeline."
     } else {
         echo "SSH connection to ${connectionVars.EC2_HOST} verified successfully."
+        proceedMessage()
     }
 }
 
@@ -223,4 +225,10 @@ def cleanDockerResources() {
             fi
         fi
     '''
+}
+
+def proceedMessage() {
+    timeout(time: 10, unit: 'MINUTES') {
+        input message: 'Proceed to the next stage?', ok: 'Proceed'
+    }
 }
