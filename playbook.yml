@@ -1,0 +1,151 @@
+---
+- name: Deploy Flask App with Docker, Python, and uv (Production)
+  hosts: all
+  become: yes
+
+  vars:
+    project_path: /opt/pfm_app
+    env_file: "{{ project_path }}/.env"
+
+  tasks:
+    # -------------------------------
+    # 1️⃣ System setup
+    # -------------------------------
+    - name: Update APT cache
+      apt:
+        update_cache: yes
+
+    - name: Install base system dependencies
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+          - make
+          - python3
+          - python3-pip
+        state: present
+
+    # -------------------------------
+    # 2️⃣ Install uv (Python package manager)
+    # -------------------------------
+    - name: Install uv globally
+      pip:
+        name: uv
+        executable: pip3
+
+    - name: Verify uv installation
+      command: uv --version
+      register: uv_version
+      changed_when: false
+
+    - debug:
+        msg: "✅ uv installed successfully (version: {{ uv_version.stdout }})"
+
+    # -------------------------------
+    # 3️⃣ Install Docker & Compose
+    # -------------------------------
+    - name: Add Docker GPG key
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /usr/share/keyrings/docker-archive-keyring.gpg
+
+    - name: Add Docker repository
+      ansible.builtin.apt_repository:
+        repo: >
+          deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg]
+          https://download.docker.com/linux/ubuntu
+          {{ ansible_distribution_release }} stable
+        state: present
+
+    - name: Install Docker and Docker Compose
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: yes
+
+    - name: Ensure Docker service is running
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    # -------------------------------
+    # 4️⃣ Deploy the project
+    # -------------------------------
+    - name: Create project directory
+      file:
+        path: "{{ project_path }}"
+        state: directory
+        mode: "0755"
+
+    # Copy the entire project (since playbook is in root)
+    - name: Copy project files to server
+      copy:
+        src: .
+        dest: "{{ project_path }}"
+        mode: "0755"
+        exclude:
+          - ".git"
+          - "__pycache__"
+          - ".venv"
+          - "*.pyc"
+          - "*.log"
+          - "node_modules"
+          - ".env"
+
+    # -------------------------------
+    # 5️⃣ Environment configuration
+    # -------------------------------
+    - name: Create environment file
+      copy:
+        dest: "{{ env_file }}"
+        content: |
+          DATABASE_URL=postgresql+psycopg2://user:password@rds-endpoint:5432/dbname
+          SECRET_KEY=your_secret_key
+          SEED_PREDEFINED=0
+          FLASK_ENV=production
+          FLASK_DEBUG=0
+      mode: "0600"
+
+    # -------------------------------
+    # 6️⃣ Build and start containers
+    # -------------------------------
+    - name: Build Docker images
+      command: make build
+      args:
+        chdir: "{{ project_path }}"
+
+    - name: Start production environment
+      command: make prod-up
+      args:
+        chdir: "{{ project_path }}"
+
+    # -------------------------------
+    # 7️⃣ Wait for healthcheck & run migration
+    # -------------------------------
+    - name: Wait for Flask app healthcheck
+      community.docker.docker_container_info:
+        name: pfm_web_prod
+      register: container_info
+      until: container_info.container.State.Health.Status == "healthy"
+      retries: 10
+      delay: 10
+
+    - name: Run database migrations
+      command: make migrate
+      args:
+        chdir: "{{ project_path }}"
+      when: container_info.container.State.Health.Status == "healthy"
+
+    - name: Show running containers
+      command: make status
+      args:
+        chdir: "{{ project_path }}"
