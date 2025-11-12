@@ -126,7 +126,15 @@ pipeline {
     }
 }
 
-// Helper function to send Jira Infor
+// Helper function to send info to Slack
+def sendDeploymentInfoSlack(String message) {
+    slackSend(
+        channel: "deployments-${params.environment_type}",
+        message: "${TICKET_LINK}${params.issue_key} - ${message}"
+    )
+}
+
+// Helper function to send info to Jira
 def sendDeploymentInfoJira(String state) {
     jiraSendDeploymentInfo(
         environmentId: "${params.environment_id}",
