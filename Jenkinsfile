@@ -2,116 +2,84 @@ pipeline {
     agent any
     
     options {
-        // Discard old builds to save disk space
-        buildDiscarder(logRotator(numToKeepStr: '10'))
-        // Timeout after 10 minutes
         timeout(time: 10, unit: 'MINUTES')
-        // Add timestamps to console output
         timestamps()
-        // Retry on failure (optional)
-        retry(2)
+    }
+    
+    parameters {
+        string(
+            description: 'Branch that will be pulled',
+            name: 'deployment_branch'
+        )
+        credentials(
+            credentialType: 'org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl',
+            description: 'Username used by Jenkins in the test EC2 instance',
+            name: 'ec2_username',
+            required: true
+        )
+        credentials(
+            credentialType: 'org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl',
+            description: 'Private IP of the test instance',
+            name: 'ec2_host',
+            required: true
+        )
+        credentials(
+            credentialType: 'org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl',
+            description: 'Link of the database (or proxy)',
+            name: 'database_url',
+            required: true
+        )
+        credentials(
+            credentialType: 'org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl',
+            description: 'Secret key used with Flask',
+            name: 'flask_secret_key',
+            required: false
+        )
+        string(
+            description: 'Type of environment in which the Flask app will be run',
+            name: 'flask_environment'
+        )
+        credentials(
+            credentialType: 'com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey',
+            description: 'Private SSH key of the test instance',
+            name: 'ssh_key',
+            required: true
+        )
     }
     
     environment {
-        // Application name
-        APP_NAME = 'personal-finance-manager'
-        // Deployment directory on EC2
-        DEPLOY_DIR = '/home/ubuntu/Personal-Finance-Manager'
-        // Docker Compose file for production
+        DEPLOYMENT_DIR = '/home/ubuntu/Personal-Finance-Manager'
         COMPOSE_FILE = 'docker-compose.prod.yml'
-        // Git repository URL
-        REPO_URL = 'https://github.com/EzequielAndreus/Personal-Finance-Manager.git'
-        // Branch to deploy
-        DEPLOY_BRANCH = 'main'
-        // EC2 connection details (configure in Jenkins credentials or pipeline parameters)
-        EC2_USER = credentials('pfm-production-username')
-        EC2_HOST = credentials('pfm-production-host')
-        // Databse URL
-        DATABASE_URL = credentials('pfm-database-url')
-        SECRET_KEY = credentials('pfm-flask-secret-key')
-        // Flask environment
-        FLASK_ENV = 'production'
     }
     
     stages {
         stage('Check Connection') {
             steps {
-                sshagent(['pfm-production-ssh-key']) {
-                    script {
-                        echo 'Checking SSH connectivity to ${EC2_USER}@${EC2_HOST} ...'
-                        
-                        // Run a short SSH test with a 5-second timeout
-                        def result = sh(
-                            script: '''
-                                timeout 5s bash -c '
-                                    ssh -o BatchMode=yes -o ConnectTimeout=5 \
-                                    -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} 'echo ok' \
-                                    2>/dev/null
-                                '
-                            ''',
-                            returnStatus: true
-                        )
-
-                        if (result != 0) {
-                            error 'SSH connection to ${EC2_HOST} failed! Aborting pipeline.'
-                        } else {
-                            echo 'SSH connection to ${EC2_HOST} verified successfully.'
-                        }
+                script {
+                    def connectionVars = getConnectionCredentials()
+                    sshagent([params.ssh_key]) {
+                        checkSSHConnection(connectionVars)
                     }
                 }
             }
         }
-        
         stage('Deploy to EC2') {
             steps {
                 script {
                     echo 'Deploying to EC2 instance...'
-
-                    // Connect using SSH
-                    sshagent(['pfm-production-ssh-key']) {
-                        sh """
-                            ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
-                                set -e
-                                
-                                echo "Navigating to deployment directory..."
-                                cd ${DEPLOY_DIR}
-
-                                echo "Setting environment variables..."
-                                export DATABASE_URL="${DATABASE_URL}"
-                                export SECRET_KEY="${SECRET_KEY}"
-                                export FLASK_ENV='${FLASK_ENV}'
-                                export FLASK_DEBUG=0
-                                export SEED_PREDEFINED=0
-
-                                echo "Pulling latest changes"
-                                git pull origin main
-                                
-                                echo "Building and starting Docker containers..."
-                                docker compose -f ${COMPOSE_FILE} pull
-                                docker compose -f ${COMPOSE_FILE} up -d --build --remove-orphans
-                                
-                                echo "Deployment completed successfully."
-                            '
-                        """
+                    def envVars = getAllDeploymentCredentials()
+                    sshagent([params.ssh_key]) {
+                        deployToEC2(envVars)
                     }
                 }
             }
             post {
                 success {
-                    script {
-                        echo 'Deployment successful!'
-                        // Optional: Send notification
-                        // slackSend(color: 'good', message: 'Deployment successful: ${env.BUILD_URL}')
-                    }
+                    echo 'Deployment successful!'
+                    proceedMessage()
                 }
                 failure {
-                    script {
-                        echo 'Deployment failed! Check logs above.'
-                        // Optional: Rollback logic
-                        // sshagent(credentials: ['pfm-production-ssh-key']) {
-                        //     sh 'ssh ${EC2_USER}@${EC2_HOST} 'cd ${DEPLOY_DIR} && docker-compose -f ${COMPOSE_FILE} down && [ -d backup ] && tar -xzf \$(ls -t backup/*.tar.gz | head -1) -C .''
-                        // }
-                    }
+                    echo 'Deployment failed! Check logs above.'
                 }
             }
         }
@@ -119,14 +87,7 @@ pipeline {
     
     post {
         always {
-            // Clean up local Docker images
-            sh '''
-                docker image prune -f || true
-                docker-compose down -v || true
-            '''
-            
-            // Archive artifacts (optional)
-            archiveArtifacts artifacts: '**/*.log', allowEmptyArchive: true
+            cleanDockerResources()
         }
         success {
             echo 'Pipeline completed successfully!'
@@ -140,3 +101,127 @@ pipeline {
     }
 }
 
+// Helper function to get connection credentials
+def getConnectionCredentials() {
+    def creds = [:]
+    withCredentials([
+        string(credentialsId: params.ec2_username, variable: 'EC2_USERNAME'),
+        string(credentialsId: params.ec2_host, variable: 'EC2_HOST')
+    ]) {
+        creds = [
+            EC2_USERNAME: env.EC2_USERNAME,
+            EC2_HOST: env.EC2_HOST
+        ]
+    }
+    return creds
+}
+
+// Helper function to get all deployment credentials
+def getAllDeploymentCredentials() {
+    def creds = [:]
+    withCredentials([
+        string(credentialsId: params.ec2_username, variable: 'EC2_USERNAME'),
+        string(credentialsId: params.ec2_host, variable: 'EC2_HOST'),
+        string(credentialsId: params.database_url, variable: 'DATABASE_URL'),
+        string(credentialsId: params.flask_secret_key, variable: 'SECRET_KEY')
+    ]) {
+        creds = [
+            EC2_USERNAME: env.EC2_USERNAME,
+            EC2_HOST: env.EC2_HOST,
+            DATABASE_URL: env.DATABASE_URL,
+            SECRET_KEY: env.SECRET_KEY,
+            FLASK_ENV: params.flask_environment,
+            DEPLOYMENT_BRANCH: params.deployment_branch
+        ]
+    }
+    return creds
+}
+
+// Helper function to check SSH connection
+def checkSSHConnection(Map connectionVars) {
+    echo "Checking SSH connectivity to ${connectionVars.EC2_USERNAME}@${connectionVars.EC2_HOST}..."
+    
+    def result = sh(
+        script: """
+            timeout 5s bash -c '
+                ssh -o BatchMode=yes -o ConnectTimeout=5 \
+                -o StrictHostKeyChecking=no ${connectionVars.EC2_USERNAME}@${connectionVars.EC2_HOST} "echo ok" \
+                2>/dev/null
+            '
+        """,
+        returnStatus: true
+    )
+    
+    if (result != 0) {
+        error "SSH connection to ${connectionVars.EC2_HOST} failed! Aborting pipeline."
+    } else {
+        echo "SSH connection to ${connectionVars.EC2_HOST} verified successfully."
+        proceedMessage()
+    }
+}
+
+// Helper function to deploy to EC2
+def deployToEC2(Map envVars) {
+    def remoteScript = """
+        set -e
+        
+        echo "Navigating to deployment directory..."
+        cd ${DEPLOYMENT_DIR}
+        
+        echo "Setting environment variables..."
+        export DATABASE_URL="${envVars.DATABASE_URL}"
+        export FLASK_ENV="${envVars.FLASK_ENV}"
+        export SECRET_KEY="${envVars.SECRET_KEY}"
+        export FLASK_DEBUG=0
+        export SEED_PREDEFINED=0
+        
+        echo "Pulling latest changes..."
+        git pull origin "${envVars.DEPLOYMENT_BRANCH}"
+        
+        echo "Stopping previous Docker container..."
+        docker compose -f ${COMPOSE_FILE} down || true
+        
+        echo "Building and starting Docker containers..."
+        docker compose -f ${COMPOSE_FILE} pull
+        docker compose -f ${COMPOSE_FILE} up -d --build --remove-orphans
+        
+        echo "Printing environment variables inside Docker container..."
+        docker compose -f ${COMPOSE_FILE} exec -T web env
+        
+        echo "Deployment completed successfully."
+    """
+    
+    sh """
+        ssh -o StrictHostKeyChecking=no "${envVars.EC2_USERNAME}@${envVars.EC2_HOST}" \
+            DATABASE_URL="${envVars.DATABASE_URL}" \
+            DEPLOYMENT_BRANCH="${envVars.DEPLOYMENT_BRANCH}" \
+            SECRET_KEY="${envVars.SECRET_KEY}" \
+            FLASK_ENV="${envVars.FLASK_ENV}" \
+            bash -s << 'REMOTE_SCRIPT'
+${remoteScript}
+REMOTE_SCRIPT
+    """
+}
+
+// Helper function to clean Docker resources
+def cleanDockerResources() {
+    sh '''
+        # Clean up unused Docker images
+        docker image prune -f || true
+        
+        # Only attempt docker-compose cleanup if docker-compose.yml exists
+        # and we're in a directory that might have containers
+        if [ -f docker-compose.yml ]; then
+            # Check if there are any running containers from this compose file
+            if docker-compose ps -q 2>/dev/null | grep -q .; then
+                docker-compose down -v || true
+            fi
+        fi
+    '''
+}
+
+def proceedMessage() {
+    timeout(time: 5, unit: 'MINUTES') {
+        input message: 'Proceed to the next stage?', ok: 'Proceed'
+    }
+}
