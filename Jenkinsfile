@@ -73,6 +73,7 @@ pipeline {
     stages {
         stage('Send notification') {
             steps {
+                sendDeploymentInfoSlack('deployment in progress')
                 sendDeploymentInfoJira('in_progress')
             }
         }
@@ -115,14 +116,17 @@ pipeline {
         success {
             echo 'Pipeline completed successfully!'
             sendDeploymentInfoJira('successful')
+            sendDeploymentInfoSlack('deployment successful')
         }
         failure {
             echo 'Pipeline failed. Check logs for details.'
             sendDeploymentInfoJira('failed')
+            sendDeploymentInfoSlack('deployment failed')
         }
         unstable {
             echo 'Pipeline is unstable.'
             sendDeploymentInfoJira('unknown')
+            sendDeploymentInfoSlack('deployment unstable')
         }
     }
 }
