@@ -70,6 +70,11 @@ pipeline {
     }
     
     stages {
+        stage('Send notification') {
+            steps {
+                sendDeploymentInfoJira('in_progress')
+            }
+        }
         stage('Check Connection') {
             steps {
                 script {
@@ -108,12 +113,15 @@ pipeline {
         }
         success {
             echo 'Pipeline completed successfully!'
+            sendDeploymentInfoJira('successful')
         }
         failure {
             echo 'Pipeline failed. Check logs for details.'
+            sendDeploymentInfoJira('failed')
         }
         unstable {
             echo 'Pipeline is unstable.'
+            sendDeploymentInfoJira('unknown')
         }
     }
 }
