@@ -8,6 +8,23 @@ pipeline {
     
     parameters {
         string(
+            name: 'environment_id',
+            description: 'ID of the environment of this deployment'
+        )
+        string(
+            name: 'issue_key',
+            description: 'Issue key associated with this deployment'
+        )
+        string(
+            name: 'environment_name',
+            description: 'Name of the environment of this deployment'
+        )
+        choice (
+            name: 'environment_type',
+            description: 'Type of environment in which the deployment will be made',
+            choices: ['testing', 'production']
+        )
+        string(
             description: 'Branch that will be pulled',
             name: 'deployment_branch'
         )
