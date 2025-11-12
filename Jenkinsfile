@@ -118,6 +118,17 @@ pipeline {
     }
 }
 
+// Helper function to send Jira Infor
+def sendDeploymentInfoJira(String state) {
+    jiraSendDeploymentInfo(
+        environmentId: "${params.environment_id}",
+        environmentName: "${params.environment_name}",
+        environmentType: "${params.environment_type}",
+        state: "${state}",
+        issueKeys: ["${params.issue_key}"]
+    )
+}
+
 // Helper function to get connection credentials
 def getConnectionCredentials() {
     def creds = [:]
