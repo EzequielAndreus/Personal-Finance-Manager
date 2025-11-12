@@ -1,6 +1,5 @@
 services:
   web:
-    network_mode: host
     build: .
     container_name: pfm_web_prod
     command: uv run src/app.py
