@@ -67,6 +67,7 @@ pipeline {
     environment {
         DEPLOYMENT_DIR = '/home/ubuntu/Personal-Finance-Manager'
         COMPOSE_FILE = 'docker-compose.prod.yml'
+        TICKET_LINK = credentials('jira-ticket-browse')
     }
     
     stages {
