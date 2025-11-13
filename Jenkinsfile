@@ -252,6 +252,29 @@ REMOTE_SCRIPT
     """
 }
 
+// Helper function to run tests
+def runTests(Map envVars) {
+    echo 'Running pytest on remote EC2...'
+    def remoteScript = """
+        set -e
+        cd ${DEPLOYMENT_DIR}
+        echo "Running pytest inside Docker service..."
+        docker compose exec web uv run pytest
+    """
+    def status = sh(
+        script: """
+            ssh -o StrictHostKeyChecking=no "${envVars.EC2_USERNAME}@${envVars.EC2_HOST}" \
+                bash -s << 'REMOTE_SCRIPT'
+${remoteScript}
+REMOTE_SCRIPT
+        """,
+        returnStatus: true
+    )
+    if (status != 0) {
+        error "Tests failed (pytest exited with status ${status})."
+    }
+}
+
 // Helper function to clean Docker resources
 def cleanDockerResources() {
     sh '''
