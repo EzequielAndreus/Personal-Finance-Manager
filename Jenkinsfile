@@ -327,17 +327,24 @@ REMOTE_SCRIPT
 // Helper function to clean Docker resources
 def cleanDockerResources() {
     sh '''
-        # Clean up unused Docker images
+        echo "Cleaning up Docker resources on Jenkins..."
+        
+        # Remove dangling images (untagged)
         docker image prune -f || true
         
-        # Only attempt docker-compose cleanup if docker-compose.yml exists
-        # and we're in a directory that might have containers
-        if [ -f docker-compose.yml ]; then
-            # Check if there are any running containers from this compose file
-            if docker-compose ps -q 2>/dev/null | grep -q .; then
-                docker-compose down -v || true
-            fi
-        fi
+        # Remove old images from your registry (keep last 10)
+        # This removes local copies, not from Docker Hub
+        docker images your-username/personal-finance-manager --format "{{.ID}} {{.Tag}}" | \
+        sort -k2 -V | head -n -10 | awk '{print $1}' | \
+        xargs -r docker rmi -f || true
+        
+        # Remove unused containers
+        docker container prune -f || true
+        
+        # Remove unused networks
+        docker network prune -f || true
+        
+        echo "Cleanup completed"
     '''
 }
 
