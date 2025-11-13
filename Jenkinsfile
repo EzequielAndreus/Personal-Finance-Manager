@@ -86,6 +86,28 @@ pipeline {
                 sendDeploymentInfoJira('in_progress')
             }
         }
+        stage('Build and Push Docker Image') {
+            steps {
+                script {
+                    def imageTag = params.image_tag ?: "${env.BUILD_NUMBER}-${env.GIT_COMMIT.take(7)}"
+                    def registry = params.docker_registry
+                    def imageName = "${registry}/personal-finance-manager:${imageTag}"
+                    
+                    // Build image
+                    sh "docker build -t ${imageName} ."
+                    
+                    // Tag as latest
+                    sh "docker tag ${imageName} ${registry}/personal-finance-manager:latest"
+                    
+                    // Push both tags
+                    sh "docker push ${imageName}"
+                    sh "docker push ${registry}/personal-finance-manager:latest"
+                    
+                    // Store image tag for deployment
+                    env.DEPLOY_IMAGE_TAG = imageTag
+                }
+            }
+        }
         stage('Check Connection') {
             steps {
                 script {
