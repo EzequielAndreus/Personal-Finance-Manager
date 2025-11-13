@@ -107,6 +107,26 @@ pipeline {
                 }
             }
         }
+        stage('Testing') {
+            steps {
+                script {
+                    echo 'Running tests...'
+                    def envVars = getAllDeploymentCredentials()
+                    sshagent([params.ssh_key]) {
+                        runTests(envVars)
+                    }
+                }
+            }
+            post {
+                success {
+                    echo 'Test passed'
+                    proceedMessage()
+                }
+                failure {
+                    echo 'Test not passed'
+                }
+            }
+        }
     }
     
     post {
