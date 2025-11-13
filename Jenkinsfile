@@ -240,6 +240,26 @@ def checkSSHConnection(Map connectionVars) {
     }
 }
 
+// Helper function to validate rollback
+def validateRollbackVersion(String imageTag, String registry) {
+    echo "Validating rollback version: ${imageTag}"
+    
+    // Check if image exists in registry
+    def result = sh(
+        script: """
+            docker pull ${registry}/personal-finance-manager:${imageTag} 2>&1 | \
+            grep -q "manifest" && echo "EXISTS" || echo "NOT_FOUND"
+        """,
+        returnStdout: true
+    ).trim()
+    
+    if (result == "NOT_FOUND") {
+        error "Rollback version ${imageTag} not found in registry ${registry}"
+    }
+    
+    echo "Rollback version ${imageTag} validated successfully"
+}
+
 // Helper function to deploy to EC2
 def deployToEC2(Map envVars) {
     def imageTag = params.image_tag ?: env.DEPLOY_IMAGE_TAG
