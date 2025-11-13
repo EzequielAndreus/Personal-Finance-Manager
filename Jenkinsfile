@@ -107,6 +107,26 @@ pipeline {
                 }
             }
         }
+        stage('Testing') {
+            steps {
+                script {
+                    echo 'Running tests...'
+                    def envVars = getAllDeploymentCredentials()
+                    sshagent([params.ssh_key]) {
+                        runTests(envVars)
+                    }
+                }
+            }
+            post {
+                success {
+                    echo 'Test passed'
+                    proceedMessage()
+                }
+                failure {
+                    echo 'Test not passed'
+                }
+            }
+        }
     }
     
     post {
@@ -234,9 +254,6 @@ def deployToEC2(Map envVars) {
         docker compose -f ${COMPOSE_FILE} pull
         docker compose -f ${COMPOSE_FILE} up -d --build --remove-orphans
         
-        echo "Printing environment variables inside Docker container..."
-        docker compose -f ${COMPOSE_FILE} exec -T web env
-        
         echo "Deployment completed successfully."
     """
     
@@ -252,25 +269,55 @@ REMOTE_SCRIPT
     """
 }
 
+// Helper function to run tests
+def runTests(Map envVars) {
+    echo 'Running pytest on remote EC2...'
+    def remoteScript = """
+        set -e
+        cd ${DEPLOYMENT_DIR}
+        echo "Running pytest inside Docker service..."
+        docker compose exec web uv run pytest
+    """
+    def status = sh(
+        script: """
+            ssh -o StrictHostKeyChecking=no "${envVars.EC2_USERNAME}@${envVars.EC2_HOST}" \
+                bash -s << 'REMOTE_SCRIPT'
+${remoteScript}
+REMOTE_SCRIPT
+        """,
+        returnStatus: true
+    )
+    if (status != 0) {
+        error "Tests failed (pytest exited with status ${status})."
+    }
+}
+
 // Helper function to clean Docker resources
 def cleanDockerResources() {
     sh '''
         # Clean up unused Docker images
         docker image prune -f || true
-        
-        # Only attempt docker-compose cleanup if docker-compose.yml exists
-        # and we're in a directory that might have containers
-        if [ -f docker-compose.yml ]; then
-            # Check if there are any running containers from this compose file
-            if docker-compose ps -q 2>/dev/null | grep -q .; then
-                docker-compose down -v || true
-            fi
-        fi
     '''
 }
 
 def proceedMessage() {
-    timeout(time: 5, unit: 'MINUTES') {
-        input message: 'Proceed to the next stage?', ok: 'Proceed'
+    try {
+        timeout(time: 5, unit: 'MINUTES') {
+            input message: 'Proceed to the next stage?', ok: 'Proceed'
+        }
+    } catch (org.jenkinsci.plugins.workflow.steps.FlowInterruptedException e) {
+        echo "No response or manual abort detected: ${e}"
+        // Specific actions when user does NOT proceed (timeout or abort)
+        sendDeploymentInfoJira('cancelled')
+        sendDeploymentInfoSlack('deployment cancelled - no manual approval')
+        // Mark build accordingly and stop pipeline
+        currentBuild.result = 'ABORTED'
+        error('Pipeline aborted because manual approval was not provided.')
+    } catch (Exception e) {
+        echo "Unexpected error while waiting for input: ${e}"
+        sendDeploymentInfoJira('failed')
+        sendDeploymentInfoSlack('deployment failed while waiting for approval')
+        currentBuild.result = 'FAILURE'
+        error('Pipeline aborted due to input error.')
     }
 }
