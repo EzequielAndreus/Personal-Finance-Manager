@@ -254,9 +254,6 @@ def deployToEC2(Map envVars) {
         docker compose -f ${COMPOSE_FILE} pull
         docker compose -f ${COMPOSE_FILE} up -d --build --remove-orphans
         
-        echo "Printing environment variables inside Docker container..."
-        docker compose -f ${COMPOSE_FILE} exec -T web env
-        
         echo "Deployment completed successfully."
     """
     
@@ -300,15 +297,6 @@ def cleanDockerResources() {
     sh '''
         # Clean up unused Docker images
         docker image prune -f || true
-        
-        # Only attempt docker-compose cleanup if docker-compose.yml exists
-        # and we're in a directory that might have containers
-        if [ -f docker-compose.yml ]; then
-            # Check if there are any running containers from this compose file
-            if docker-compose ps -q 2>/dev/null | grep -q .; then
-                docker-compose down -v || true
-            fi
-        fi
     '''
 }
 
