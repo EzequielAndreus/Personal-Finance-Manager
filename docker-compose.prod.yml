@@ -1,6 +1,6 @@
 services:
   web:
-    build: .
+    image: ${DOCKER_REGISTRY:-docker.io/0javier}/personal-finance-manager:${IMAGE_TAG:-latest}
     container_name: pfm_web_prod
     command: uv run src/app.py
     ports:
