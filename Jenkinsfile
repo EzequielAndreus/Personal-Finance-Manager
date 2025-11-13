@@ -67,11 +67,13 @@ pipeline {
     environment {
         DEPLOYMENT_DIR = '/home/ubuntu/Personal-Finance-Manager'
         COMPOSE_FILE = 'docker-compose.prod.yml'
+        TICKET_LINK = credentials('jira-ticket-browse')
     }
     
     stages {
         stage('Send notification') {
             steps {
+                sendDeploymentInfoSlack('deployment in progress')
                 sendDeploymentInfoJira('in_progress')
             }
         }
@@ -114,19 +116,30 @@ pipeline {
         success {
             echo 'Pipeline completed successfully!'
             sendDeploymentInfoJira('successful')
+            sendDeploymentInfoSlack('deployment successful')
         }
         failure {
             echo 'Pipeline failed. Check logs for details.'
             sendDeploymentInfoJira('failed')
+            sendDeploymentInfoSlack('deployment failed')
         }
         unstable {
             echo 'Pipeline is unstable.'
             sendDeploymentInfoJira('unknown')
+            sendDeploymentInfoSlack('deployment unstable')
         }
     }
 }
 
-// Helper function to send Jira Infor
+// Helper function to send info to Slack
+def sendDeploymentInfoSlack(String message) {
+    slackSend(
+        channel: "deployments-${params.environment_type}",
+        message: "${TICKET_LINK}${params.issue_key} - ${message}"
+    )
+}
+
+// Helper function to send info to Jira
 def sendDeploymentInfoJira(String state) {
     jiraSendDeploymentInfo(
         environmentId: "${params.environment_id}",
