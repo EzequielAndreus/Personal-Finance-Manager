@@ -62,6 +62,15 @@ pipeline {
             name: 'ssh_key',
             required: true
         )
+        string(
+            name: 'image_tag',
+            description: 'Docker image tag to deploy (leave empty for latest build, or specify version for rollback)',
+            defaultValue: ''
+        )
+        string(
+            name: 'docker_registry',
+            description: 'Docker registry URL',
+        )
     }
     
     environment {
