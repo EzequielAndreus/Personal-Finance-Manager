@@ -30,13 +30,13 @@ pipeline {
         )
         credentials(
             credentialType: 'org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl',
-            description: 'Username used by Jenkins in the test EC2 instance',
+            description: 'Username used by Jenkins in the EC2 instance',
             name: 'ec2_username',
             required: true
         )
         credentials(
             credentialType: 'org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl',
-            description: 'Private IP of the test instance',
+            description: 'Private IP of the instance',
             name: 'ec2_host',
             required: true
         )
@@ -58,7 +58,7 @@ pipeline {
         )
         credentials(
             credentialType: 'com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey',
-            description: 'Private SSH key of the test instance',
+            description: 'Private SSH key of the instance',
             name: 'ssh_key',
             required: true
         )
