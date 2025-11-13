@@ -242,6 +242,16 @@ def checkSSHConnection(Map connectionVars) {
 
 // Helper function to deploy to EC2
 def deployToEC2(Map envVars) {
+    def imageTag = params.image_tag ?: env.DEPLOY_IMAGE_TAG
+    def registry = params.docker_registry
+
+    // If image_tag was manually specified, validate it's a rollback
+    if (params.image_tag && params.image_tag != env.DEPLOY_IMAGE_TAG) {
+        echo "ROLLBACK DETECTED: Deploying version ${imageTag}"
+        validateRollbackVersion(imageTag, registry)
+        sendDeploymentInfoSlack("ROLLBACK to version ${imageTag}")
+    }
+
     def remoteScript = """
         set -e
         
@@ -254,17 +264,28 @@ def deployToEC2(Map envVars) {
         export SECRET_KEY="${envVars.SECRET_KEY}"
         export FLASK_DEBUG=0
         export SEED_PREDEFINED=0
+        export IMAGE_TAG="${imageTag}"
         
         echo "Pulling latest changes..."
         git pull origin "${envVars.DEPLOYMENT_BRANCH}"
         
         echo "Stopping previous Docker container..."
         docker compose -f ${COMPOSE_FILE} down || true
-        
-        echo "Building and starting Docker containers..."
+
+        echo "Pulling Docker image: ${imageTag}..."
         docker compose -f ${COMPOSE_FILE} pull
-        docker compose -f ${COMPOSE_FILE} up -d --build --remove-orphans
         
+        echo "Starting Docker containers with image tag: ${imageTag}..."
+        docker compose -f ${COMPOSE_FILE} up -d --remove-orphans
+        
+        echo "Saving deployed version..."
+        DEPLOYMENT_LOG="${DEPLOYMENT_DIR}/.deployment_history"
+        TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        echo "${TIMESTAMP}|${imageTag}|${envVars.DEPLOYMENT_BRANCH}|${BUILD_NUMBER}" >> "${DEPLOYMENT_LOG}"
+        echo "${imageTag}" > "${DEPLOYMENT_DIR}/.deployed_version"
+
+        ail -n 50 "${DEPLOYMENT_LOG}" > "${DEPLOYMENT_LOG}.tmp" && mv "${DEPLOYMENT_LOG}.tmp" "${DEPLOYMENT_LOG}"
+
         echo "Printing environment variables inside Docker container..."
         docker compose -f ${COMPOSE_FILE} exec -T web env
         
