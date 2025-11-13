@@ -301,7 +301,23 @@ def cleanDockerResources() {
 }
 
 def proceedMessage() {
-    timeout(time: 5, unit: 'MINUTES') {
-        input message: 'Proceed to the next stage?', ok: 'Proceed'
+    try {
+        timeout(time: 5, unit: 'MINUTES') {
+            input message: 'Proceed to the next stage?', ok: 'Proceed'
+        }
+    } catch (org.jenkinsci.plugins.workflow.steps.FlowInterruptedException e) {
+        echo "No response or manual abort detected: ${e}"
+        // Specific actions when user does NOT proceed (timeout or abort)
+        sendDeploymentInfoJira('cancelled')
+        sendDeploymentInfoSlack('deployment cancelled - no manual approval')
+        // Mark build accordingly and stop pipeline
+        currentBuild.result = 'ABORTED'
+        error('Pipeline aborted because manual approval was not provided.')
+    } catch (Exception e) {
+        echo "Unexpected error while waiting for input: ${e}"
+        sendDeploymentInfoJira('failed')
+        sendDeploymentInfoSlack('deployment failed while waiting for approval')
+        currentBuild.result = 'FAILURE'
+        error('Pipeline aborted due to input error.')
     }
 }
