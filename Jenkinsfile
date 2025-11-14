@@ -8,14 +8,17 @@ pipeline {
     
     parameters {
         string(
+            defaultValue: 'testing-env-01',
             name: 'environment_id',
             description: 'ID of the environment of this deployment'
         )
         string(
+            defaultValue: 'PFM-95',
             name: 'issue_key',
             description: 'Issue key associated with this deployment'
         )
         string(
+            defaultValue; 'Testing',
             name: 'environment_name',
             description: 'Name of the environment of this deployment'
         )
@@ -25,38 +28,45 @@ pipeline {
             choices: ['testing', 'production']
         )
         string(
+            defaultValue: 'main',
             description: 'Branch that will be pulled',
             name: 'deployment_branch'
         )
         credentials(
+            defaultValue: 'pfm-test-username',
             credentialType: 'org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl',
             description: 'Username used by Jenkins in the test EC2 instance',
             name: 'ec2_username',
             required: true
         )
         credentials(
+            defaultValue: 'pfm-test-host',
             credentialType: 'org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl',
             description: 'Private IP of the test instance',
             name: 'ec2_host',
             required: true
         )
         credentials(
+            defaultValue: 'pfm-database-url',
             credentialType: 'org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl',
             description: 'Link of the database (or proxy)',
             name: 'database_url',
             required: true
         )
         credentials(
+            defaultValue: 'pfm-flask-secret-key',
             credentialType: 'org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl',
             description: 'Secret key used with Flask',
             name: 'flask_secret_key',
             required: false
         )
         string(
+            defaultValue: 'production',
             description: 'Type of environment in which the Flask app will be run',
             name: 'flask_environment'
         )
         credentials(
+            defaultValue: 'pfm-production-ssh-key',
             credentialType: 'com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey',
             description: 'Private SSH key of the test instance',
             name: 'ssh_key',
