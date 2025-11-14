@@ -71,6 +71,13 @@ pipeline {
             name: 'docker_registry',
             description: 'Docker registry URL',
         )
+        credentials(
+            defaultValue: 'docker-username-password',
+            credentialType: 'com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl',
+            description: 'Docker registry username/password (used for docker login).',
+            name: 'docker_registry_creds',
+            required: false
+        )
     }
     
     environment {
