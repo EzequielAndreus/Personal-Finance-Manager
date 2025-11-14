@@ -18,7 +18,7 @@ pipeline {
             description: 'Issue key associated with this deployment'
         )
         string(
-            defaultValue; 'Testing',
+            defaultValue: 'Testing',
             name: 'environment_name',
             description: 'Name of the environment of this deployment'
         )
