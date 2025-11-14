@@ -236,6 +236,7 @@ def deployToEC2(Map envVars) {
         
         echo "Navigating to deployment directory..."
         cd ${DEPLOYMENT_DIR}
+        pwd
         
         echo "Setting environment variables..."
         export DATABASE_URL="${envVars.DATABASE_URL}"
@@ -253,9 +254,6 @@ def deployToEC2(Map envVars) {
         echo "Building and starting Docker containers..."
         docker compose -f ${COMPOSE_FILE} pull
         docker compose -f ${COMPOSE_FILE} up -d --build --remove-orphans
-        
-        echo "Applying database migrations..."
-	    docker compose exec web uv run python -c "from src.app import create_app; from src.models import db; app = create_app(); app.app_context().push(); db.create_all()"
         
         echo "Deployment completed successfully."
     """
