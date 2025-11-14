@@ -19,63 +19,63 @@ help:
 
 # Development environment
 build:
-	docker-compose build
+	docker compose build
 
 up:
-	docker-compose up -d
+	docker compose up -d
 
 down:
-	docker-compose down
+	docker compose down
 
 logs:
-	docker-compose logs -f
+	docker compose logs -f
 
 shell:
-	docker-compose exec web bash
+	docker compose exec web bash
 
 db-shell:
-	docker-compose exec db psql -U postgres -d postgres
+	docker compose exec db psql -U postgres -d postgres
 
 # Testing (inside docker)
 test:
-	docker-compose exec web uv run pytest
+	docker compose exec web uv run pytest
 
 test-unit:
-	docker-compose exec web uv run pytest -m unit
+	docker compose exec web uv run pytest -m unit
 
 test-integration:
-	docker-compose exec web uv run pytest -m integration
+	docker compose exec web uv run pytest -m integration
 
 test-cov:
-	docker-compose exec web uv run pytest --cov=src --cov=models --cov-report=term-missing
+	docker compose exec web uv run pytest --cov=src --cov=models --cov-report=term-missing
 
 # Production environment
 prod-up:
-	docker-compose -f docker-compose.prod.yml up -d
+	docker compose -f docker-compose.prod.yml up -d
 
 prod-down:
-	docker-compose -f docker-compose.prod.yml down
+	docker compose -f docker-compose.prod.yml down
 
 # Database operations
 migrate:
-	docker-compose exec web uv run python -c "from src.app import create_app; from src.models import db; app = create_app(); app.app_context().push(); db.create_all()"
+	docker compose exec web uv run python -c "from src.app import create_app; from src.models import db; app = create_app(); app.app_context().push(); db.create_all()"
 
 # Cleanup
 clean:
-	docker-compose down -v
+	docker compose down -v
 	docker system prune -f
 
 clean-all:
-	docker-compose down -v --rmi all
+	docker compose down -v --rmi all
 	docker system prune -af
 
 # Development helpers
 restart:
-	docker-compose restart
+	docker compose restart
 
 restart-web:
-	docker-compose restart web
+	docker compose restart web
 
 # Status
 status:
-	docker-compose ps
+	docker compose ps

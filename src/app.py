@@ -19,7 +19,14 @@ def create_app():
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     # Initialize the database
-    db.init_app(app)
+    # Ensure tables and admin user exist on app startup
+    try:
+        init_db(app)
+    except Exception as e:
+        # Avoid crashing startup if DB isn't available yet; log/flash elsewhere
+        print(f"Warning: init_db failed: {e}")
+
+
 
     # Import and register blueprints (routes)
     from controllers.auth_route import auth_bp

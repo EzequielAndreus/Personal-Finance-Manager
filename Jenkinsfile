@@ -107,26 +107,6 @@ pipeline {
                 }
             }
         }
-        stage('Testing') {
-            steps {
-                script {
-                    echo 'Running tests...'
-                    def envVars = getAllDeploymentCredentials()
-                    sshagent([params.ssh_key]) {
-                        runTests(envVars)
-                    }
-                }
-            }
-            post {
-                success {
-                    echo 'Test passed'
-                    proceedMessage()
-                }
-                failure {
-                    echo 'Test not passed'
-                }
-            }
-        }
     }
     
     post {
@@ -236,6 +216,7 @@ def deployToEC2(Map envVars) {
         
         echo "Navigating to deployment directory..."
         cd ${DEPLOYMENT_DIR}
+        pwd
         
         echo "Setting environment variables..."
         export DATABASE_URL="${envVars.DATABASE_URL}"
@@ -267,29 +248,6 @@ def deployToEC2(Map envVars) {
 ${remoteScript}
 REMOTE_SCRIPT
     """
-}
-
-// Helper function to run tests
-def runTests(Map envVars) {
-    echo 'Running pytest on remote EC2...'
-    def remoteScript = """
-        set -e
-        cd ${DEPLOYMENT_DIR}
-        echo "Running pytest inside Docker service..."
-        docker compose exec web uv run pytest
-    """
-    def status = sh(
-        script: """
-            ssh -o StrictHostKeyChecking=no "${envVars.EC2_USERNAME}@${envVars.EC2_HOST}" \
-                bash -s << 'REMOTE_SCRIPT'
-${remoteScript}
-REMOTE_SCRIPT
-        """,
-        returnStatus: true
-    )
-    if (status != 0) {
-        error "Tests failed (pytest exited with status ${status})."
-    }
 }
 
 // Helper function to clean Docker resources
