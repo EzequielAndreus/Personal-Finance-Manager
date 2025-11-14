@@ -96,22 +96,53 @@ pipeline {
         stage('Build and Push Docker Image') {
             steps {
                 script {
-                    def imageTag = params.image_tag ?: "${env.BUILD_NUMBER}-${env.GIT_COMMIT.take(7)}"
-                    def registry = params.docker_registry
-                    def imageName = "${registry}/personal-finance-manager:${imageTag}"
+                    def registry = params.docker_registry.trim()
+                    def requestedTag = params.image_tag?.trim()
                     
-                    // Build image
-                    sh "docker build -t ${imageName} ."
+                    // Helper to docker login if credentials provided
+                    def doDockerLogin = {
+                        if (params.docker_registry_creds) {
+                            withCredentials([usernamePassword(credentialsId: params.docker_registry_creds, usernameVariable: 'REG_USER', passwordVariable: 'REG_PASS')]) {
+                                // If registry is just a username (docker hub), login to docker.io; otherwise use registry host
+                                def loginHost = registry.contains('/') ? registry.split('/')[0] : 'docker.io'
+                                sh "echo "${env.REG_PASS}" | docker login ${loginHost} -u "${env.REG_USER}" --password-stdin"
+                            }
+                        } else {
+                            echo "No docker_registry_creds provided; assuming docker is already logged in on agent."
+                        }
+                    }
                     
-                    // Tag as latest
-                    sh "docker tag ${imageName} ${registry}/personal-finance-manager:latest"
-                    
-                    // Push both tags
-                    sh "docker push ${imageName}"
-                    sh "docker push ${registry}/personal-finance-manager:latest"
-                    
-                    // Store image tag for deployment
-                    env.DEPLOY_IMAGE_TAG = imageTag
+                    if (requestedTag) {
+                        // User requested a specific tag -> treat as rollback: do not rebuild, just validate it exists in remote registry
+                        echo "Tag provided (${requestedTag}). Skipping build and validating image exists in remote registry..."
+                        doDockerLogin()
+                        def result = sh(
+                            script: "docker pull ${registry}/personal-finance-manager:${requestedTag} > /dev/null 2>&1; echo \$?",
+                            returnStdout: true
+                        ).trim()
+                        if (result != '0') {
+                            error "Image ${registry}/personal-finance-manager:${requestedTag} not found in registry"
+                        }
+                        env.DEPLOY_IMAGE_TAG = requestedTag
+                        echo "Using existing image tag: ${env.DEPLOY_IMAGE_TAG}"
+                    } else {
+                        // Normal build -> produce a unique tag, push it and a 'latest' alias
+                        def imageTag = "${env.BUILD_NUMBER}-${env.GIT_COMMIT.take(7)}"
+                        def imageName = "${registry}/personal-finance-manager:${imageTag}"
+                        
+                        doDockerLogin()
+                        
+                        echo "Building image ${imageName} on Jenkins agent..."
+                        sh "docker build -t ${imageName} ."
+                        
+                        // Tag as latest and push both tags
+                        sh "docker tag ${imageName} ${registry}/personal-finance-manager:latest"
+                        sh "docker push ${imageName}"
+                        sh "docker push ${registry}/personal-finance-manager:latest"
+                        
+                        env.DEPLOY_IMAGE_TAG = imageTag
+                        echo "Built and pushed image tag: ${env.DEPLOY_IMAGE_TAG}"
+                    }
                 }
             }
         }
