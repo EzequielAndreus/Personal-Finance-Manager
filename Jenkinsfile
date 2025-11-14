@@ -254,6 +254,9 @@ def deployToEC2(Map envVars) {
         docker compose -f ${COMPOSE_FILE} pull
         docker compose -f ${COMPOSE_FILE} up -d --build --remove-orphans
         
+        echo "Applying database migrations..."
+	    docker compose exec web uv run python -c "from src.app import create_app; from src.models import db; app = create_app(); app.app_context().push(); db.create_all()"
+        
         echo "Deployment completed successfully."
     """
     
